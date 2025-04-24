@@ -5,6 +5,7 @@ import { Socket } from "@/core/api/session.api";
 import { ModuleManual } from "@/core/interface/module.interface";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import ImageURL from "@/components/manual/imageUrl"; // Adjust the path if necessary
 import {
   Alert,
   Dimensions,
@@ -16,7 +17,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { WebView } from 'react-native-webview';
 
 const { width } = Dimensions.get("window");
 
@@ -27,6 +27,12 @@ export default function Manual() {
     null
   );
   const Manuals: ModuleManual[] = JSON.parse(moduleManuals as string);
+
+  useEffect(() => {
+    if (selectedManual) {
+      console.log("📦 Module sélectionné :", selectedManual);
+    }
+  }, [selectedManual]);
 
   useEffect(() => {
     const handleSessionCleared = (res: any) => {
@@ -93,11 +99,8 @@ export default function Manual() {
 
           <View style={styles.contentContainer}>
             {selectedManual ? (
-              selectedManual.pdfUrl ? (
-                <WebView
-                  source={{ uri: selectedManual.pdfUrl }}
-                  style={{ flex: 1, height: 500 }}
-                />
+              selectedManual.imageUrl ? (
+                <ImageURL imageUrl={selectedManual.imageUrl} />
               ) : (
                 <ModuleInstructions manual={selectedManual} />
               )
