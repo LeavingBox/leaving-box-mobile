@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-export const Socket = io("http://10.33.70.48:3000", {
+export const Socket = io("http://10.33.70.48:3001", {
   transports: ["websocket"],
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
