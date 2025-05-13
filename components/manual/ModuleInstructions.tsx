@@ -1,22 +1,27 @@
 import { ModuleManual } from "@/core/interface/module.interface";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 export default function ModuleInstructions({
   manual,
 }: Readonly<{
   manual: ModuleManual;
 }>) {
+  console.log("manual", manual);
   return (
     <View>
       <Text style={styles.title}>{manual.name}</Text>
       <Text style={styles.description}>{manual.description}</Text>
-      {manual.rules.map((rule, index) => (
+      {manual.rules?.map((rule, index) => (
         <Text key={index} style={styles.rules}>
-          {rule.name}. {rule.description}
+          {rule}
         </Text>
       ))}
 
-      <Text style={styles.instructions}>{manual.defuseMethod}</Text>
+      <Image
+        resizeMode="contain"
+        source={{ uri: manual.imgUrl }}
+        style={styles.image}
+      />
     </View>
   );
 }
@@ -42,5 +47,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 10,
     padding: 10,
+  },
+  image: {
+    zIndex: 100,
+    width: 300,
+    height: 300,
+    borderColor: "red",
+    borderWidth: 1,
+    alignSelf: "center",
   },
 });

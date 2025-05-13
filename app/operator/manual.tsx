@@ -16,7 +16,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { WebView } from 'react-native-webview';
+import { WebView } from "react-native-webview";
 
 const { width } = Dimensions.get("window");
 
@@ -93,14 +93,7 @@ export default function Manual() {
 
           <View style={styles.contentContainer}>
             {selectedManual ? (
-              selectedManual.pdfUrl ? (
-                <WebView
-                  source={{ uri: selectedManual.pdfUrl }}
-                  style={{ flex: 1, height: 500 }}
-                />
-              ) : (
-                <ModuleInstructions manual={selectedManual} />
-              )
+              <ModuleInstructions manual={selectedManual} />
             ) : (
               <Text style={styles.title}>
                 Bomb Defusal Manual, for an Operator
