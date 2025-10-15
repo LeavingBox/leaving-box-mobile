@@ -1,3 +1,4 @@
+import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import { Socket } from "@/core/api/session.api";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -34,13 +35,15 @@ export default function TimerPage() {
 
   const handleTimer = () => {
     console.log("Starting timer");
-    Socket.emit("startTimer", { sessionCode: sessionCode, duration: maxTime });
+    Socket.emit("startTimer", { sessionCode: sessionCode });
     Socket.on("timerUpdate", (data: any) => {
       console.log("Timer update", data);
       handleTime(data.remaining);
     });
     Socket.on("gameOver", (data: any) => {
-      Alert.alert("Fin de la partie", data.message);
+      Alert.alert("Fin de la partie", data.message,[
+        { text: "MENU", onPress: () => handleBack() },
+      ]);
     });
   };
 
@@ -49,14 +52,31 @@ export default function TimerPage() {
       "clearSession",
       { sessionCode: sessionCode },
       (res: { success: boolean }) => {
+        if (!res.success) {
+          Alert.alert(
+            "Erreur",
+            "Une erreur s'est produite lors de la fermeture de la session."
+          );
+          return;
+        }
         Socket.disconnect();
-        router.back();
+        Socket.removeAllListeners();
+        router.navigate({
+          pathname: "/agent/dificulty",
+        });
       }
     );
   };
 
+  const handleEndGame = () => {
+
+  }
+
   return (
     <ThemedView style={styles.container}>
+      <View style={styles.backButton}>
+        <NavigationButton color="red" label="Quitter" onPress={handleBack} />
+      </View>
       <Text style={styles.title}>Timer</Text>
       <View style={styles.codeContainer}>
         <TextInput
@@ -97,6 +117,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginVertical: 50,
+  },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 1,
   },
   title: {
     fontSize: 24,

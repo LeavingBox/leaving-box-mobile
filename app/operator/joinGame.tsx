@@ -19,12 +19,13 @@ export default function JoinGame() {
         if (response.success) {
           Socket.emit("joinSession", {
             sessionCode: code,
+            player: "Operator",
           });
           Socket.on("playerJoined", () => {
             console.log("playerJoined");
             Socket.off("playerJoined");
             router.navigate({
-              pathname: "/agent/game",
+              pathname: "/agent/waitingRoom",
               params: { sessionCode: code, role: "operator" },
             });
           });
@@ -38,8 +39,8 @@ export default function JoinGame() {
   const handleBack = () => {
     Socket.off("playerJoined");
     Socket.off("currentSession");
-    Socket.emit("leaveSession", { sessionCode: code });
-    router.back();
+    Socket.emit("leaveSession", { sessionCode: code, player: "Operator" });
+    router.navigate("/");
   };
 
   const handleNext = () => {

@@ -2,24 +2,9 @@ import { Image, StyleSheet, Pressable } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import HomeAgent from "@/components/unique/HomeAgent";
 import HomeOperator from "@/components/unique/HomeOperator";
-import { useRole, Role } from "@/components/RoleContext";
 import { router } from "expo-router";
 
-
 export default function HomeScreen() {
-  const { setRole } = useRole();
-
-  const chooseRole = (role: Role) => {
-    setRole(role);
-
-    if (role === "agent") {
-      router.navigate("/agent/dificulty");
-    } 
-    if (role === "operator") {
-      router.navigate("/operator/joinGame");
-    }
-  };
-
   return (
     <ThemedView style={{ flex: 1 }}>
       <Image
@@ -43,8 +28,8 @@ export default function HomeScreen() {
       />
 
       <ThemedView style={styles.mainContainer}>
-         <HomeAgent onPress={() => chooseRole("agent")} />
-        <HomeOperator onPress={() => chooseRole("operator")} />
+        <HomeAgent onPress={() => router.navigate("/agent/dificulty")} />
+        <HomeOperator onPress={() => router.navigate("/operator/joinGame")} />
       </ThemedView>
     </ThemedView>
   );
@@ -61,7 +46,6 @@ const styles = StyleSheet.create({
   agentBackground: {
     position: "absolute",
     top: 0,
-    // width: "100%",
     zIndex: 1,
   },
   operatorBackground: {

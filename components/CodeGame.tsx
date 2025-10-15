@@ -3,16 +3,18 @@ import {
   View,
   Text,
   StyleSheet,
-  Clipboard,
+  
   TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Clipboard from 'expo-clipboard';
+
 
 const CodeGame = ({ code = "12344" }: Readonly<{ code?: string }>) => {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    Clipboard.setString(code);
+    Clipboard.setStringAsync(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000); // Réinitialise après 2s
   };

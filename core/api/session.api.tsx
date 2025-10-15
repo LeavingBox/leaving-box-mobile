@@ -1,12 +1,16 @@
 import { io } from "socket.io-client";
 
-export const Socket = io("http://10.33.69.177:3000", {
-  transports: ["websocket"],
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  autoConnect: false,
-});
+export const Socket = io(
+  process.env.EXPO_PUBLIC_WEBSOCKET_URL,
+  // "http://192.168.1.158:3030",
+  {
+    transports: ["websocket"],
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    autoConnect: false,
+  }
+);
 
 Socket.on("connect", () => {
   console.log("Socket connected:", Socket.id);

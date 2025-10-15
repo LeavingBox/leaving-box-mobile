@@ -12,15 +12,21 @@ import { Socket } from "@/core/api/session.api";
 import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import PlayerConnected from "@/components/PlayerConnected";
-import { useRole } from "@/components/RoleContext";
-
+import * as Clipboard from "expo-clipboard";
+import { ModuleManual } from "@/core/interface/module.interface";
 
 export default function WaitingRoom() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const { sessionCode, maxTime, role } = useLocalSearchParams();
+  const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<any>();
-  const { role } = useRole();
+
+  const handleBack = () => {
+    if (role === "operator") {
+      Socket.disconnect();
+    }
+    router.back();
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -33,6 +39,24 @@ export default function WaitingRoom() {
     };
 
     Socket.on("currentSession", handleCurrentSession);
+
+    Socket.on("gameStarted", (data: { moduleManuals: ModuleManual[] }) => {
+      if (role === "operator") {
+        const serializedModules = JSON.stringify(data.moduleManuals);
+
+        router.navigate({
+          pathname: "/operator/manual",
+          params: {
+            sessionCode: sessionCode,
+            maxTime: maxTime,
+            role: role,
+            moduleManuals: serializedModules,
+          },
+        });
+      } else {
+        console.log("Game started, but not operator");
+      }
+    });
 
     return () => {
       clearInterval(interval);
@@ -57,27 +81,32 @@ export default function WaitingRoom() {
   }, []);
 
   const handleNext = () => {
-    router.navigate({
-      pathname: "/agent/timerPage",
-      params: {
-        sessionCode: sessionCode,
-        maxTime: maxTime,
-        role: role,
-      },
+    Socket.emit("startGame", { sessionCode: sessionCode }, (res: any) => {
+      if (!res.success) {
+        Alert.alert("Erreur", res.message);
+      } else {
+        router.navigate({
+          pathname: "/agent/timerPage",
+          params: {
+            sessionCode: sessionCode,
+            maxTime: maxTime,
+            role: role,
+          },
+        });
+      }
     });
-  };
-
-  const handleBack = () => {
-    if (role === "operator") {
-      Socket.disconnect();
-    }
-    router.back();
   };
 
   return (
     <ThemedView style={styles.container}>
       <Text style={styles.title}>Salle d'attente</Text>
-      <TouchableOpacity style={styles.codeButton}>
+      <TouchableOpacity
+        style={[
+          styles.codeButton,
+          { backgroundColor: role === "agent" ? "red" : "blue" },
+        ]}
+        onPress={() => Clipboard.setStringAsync(sessionCode as string)}
+      >
         <Text style={styles.codeText}>{sessionCode}</Text>
       </TouchableOpacity>
       {isLoading ? (
@@ -92,27 +121,22 @@ export default function WaitingRoom() {
         ))
       )}
       <View style={styles.buttonContainer}>
+        {role === "agent" && (
+          <NavigationButton
+            onPress={handleNext}
+            param={{ sessionCode: sessionCode }}
+            label="Lancer la partie"
+            color={"red"}
+          />
+        )}
+
         <NavigationButton
-          onPress={handleNext}
+          onPress={handleBack}
           param={{ sessionCode: sessionCode }}
-          label="Lançer la partie"
-          color="red"
+          label="Quitter la salle d'attente"
+          color={role === "agent" ? "red" : "blue"}
         />
-
-      {role === "agent" && session?.connectedClients?.length > 0 && (
-        <NavigationButton 
-          href="/agent/timer" 
-          label="Go" 
-          color="red" 
-        />
-      )}
-
-      <NavigationButton
-        onPress={handleBack}
-        param={{ sessionCode: sessionCode }}
-        label="Quitter la salle d'attente"
-        color="red"
-      />
+      </View>
     </ThemedView>
   );
 }
@@ -125,7 +149,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   codeButton: {
-    backgroundColor: "red",
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 5,
