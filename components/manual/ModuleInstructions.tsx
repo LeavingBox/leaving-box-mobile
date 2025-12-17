@@ -6,16 +6,38 @@ export default function ModuleInstructions({
 }: Readonly<{
   manual: ModuleManual;
 }>) {
-  console.log("manual", manual);
+  const normalizeToArray = (value?: string[] | string) => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  };
+
+  const rules = normalizeToArray(manual.rules);
+  const solutions = normalizeToArray(manual.solutions);
+
   return (
     <View>
       <Text style={styles.title}>{manual.name}</Text>
       <Text style={styles.description}>{manual.description}</Text>
-      {manual.rules?.map((rule, index) => (
-        <Text key={index} style={styles.rules}>
-          {rule}
-        </Text>
-      ))}
+      {rules.length > 0 && (
+        <View style={styles.block}>
+          <Text style={styles.sectionTitle}>Règles</Text>
+          {rules.map((rule, index) => (
+            <Text key={index} style={styles.rules}>
+              {rule}
+            </Text>
+          ))}
+        </View>
+      )}
+      {solutions.length > 0 && (
+        <View style={styles.block}>
+          <Text style={styles.sectionTitle}>Solutions</Text>
+          {solutions.map((solution, index) => (
+            <Text key={index} style={styles.rules}>
+              {solution}
+            </Text>
+          ))}
+        </View>
+      )}
 
       <Image
         resizeMode="contain"
@@ -35,6 +57,14 @@ const styles = StyleSheet.create({
   },
   description: {
     fontStyle: "italic",
+  },
+  block: {
+    marginTop: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 6,
   },
   rules: {
     fontSize: 14,
