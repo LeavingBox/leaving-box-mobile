@@ -54,7 +54,7 @@ export default function WaitingRoom() {
           },
         });
       } else {
-        console.log("Game started, but not operator");
+        console.error("Game started, but not operator");
       }
     });
 
