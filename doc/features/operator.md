@@ -24,3 +24,4 @@
   - `components/manual/ManualsNav.tsx` : navigation entre modules, met à jour `selectedManual`.
   - `components/manual/ModuleInstructions.tsx` : rend `name`, `description`, bloc "Règles" et bloc "Solutions". Normalise string/array et accepte les solutions injectées depuis `waitingRoom`.
 - Type des modules : `core/interface/module.interface.tsx` avec `_id`/`moduleId`, `rules`, `solutions`, `imgUrl`.
+
