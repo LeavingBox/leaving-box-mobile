@@ -27,6 +27,7 @@ const { width } = Dimensions.get("window");
 
 export default function Manual() {
   const router = useRouter();
+
   const { sessionCode, maxTime, role, moduleManuals } = useLocalSearchParams();
   const [selectedManual, setSelectedManual] = useState<ModuleManual | null>(
     null,
@@ -65,20 +66,34 @@ export default function Manual() {
       pathname: "/operator/joinGame",
     });
   };
-
-  const navigation = useNavigation();
+  const handleBack = () => {
+    if (sessionCode) {
+      Socket.emit("back", { sessionCode: sessionCode });
+    }
+    console.log("should close");
+    Socket.emit(
+      "clearSession",
+      { sessionCode: sessionCode },
+      (res: { success: boolean }) => {
+        if (!res.success) {
+          Alert.alert(
+            "Erreur",
+            "Une erreur s'est produite lors de la fermeture de la session.",
+          );
+          return;
+        }
+        Socket.removeAllListeners();
+        Socket.disconnect();
+        router.replace("/agent/dificulty");
+      },
+    );
+  };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", () => {
-      myFunction();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  const myFunction = () => {
-    console.log("Screen is being exited");
-  };
+    return () => {
+      handleBack();
+    };
+  }, []);
 
   return (
     <ParallaxScrollView>
