@@ -19,3 +19,4 @@
 ## Persistance locale
 - Fichier : `core/service/session.service.tsx`
 - Helpers AsyncStorage : `saveSession`, `getSession`, `clearSession` pour stocker/retirer une session (`SESSION_KEY = "current_session"`).
+

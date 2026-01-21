@@ -27,3 +27,4 @@
 - Initialisation depuis `maxTime` (params) puis `Socket.emit("startTimer", { sessionCode })`.
 - Écoutes : `timerUpdate` (met à jour MM:SS) et `gameOver` (alerte + retour menu via `handleBack`).
 - Bouton "Quitter" → `clearSession`, déconnexion socket, navigation vers `/agent/dificulty`.
+
