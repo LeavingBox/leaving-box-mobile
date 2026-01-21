@@ -22,6 +22,9 @@ export default function WaitingRoom() {
   const [session, setSession] = useState<any>();
 
   const handleBack = () => {
+    if (sessionCode) {
+      Socket.emit("back", { sessionCode: sessionCode as string });
+    }
     if (role === "operator") {
       Socket.disconnect();
     }
@@ -77,6 +80,18 @@ export default function WaitingRoom() {
 
     return () => {
       Socket.off("sessionCleared", handleSessionCleared);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOperatorBackNavigation = (data: any) => {
+      console.log("Un opérateur a fait retour en arrière:", data);
+    };
+
+    Socket.on("operatorBackNavigation", handleOperatorBackNavigation);
+
+    return () => {
+      Socket.off("operatorBackNavigation", handleOperatorBackNavigation);
     };
   }, []);
 

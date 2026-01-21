@@ -48,6 +48,9 @@ export default function TimerPage() {
   };
 
   const handleBack = () => {
+    if (sessionCode) {
+      Socket.emit("back", { sessionCode: sessionCode as string });
+    }
     Socket.emit(
       "clearSession",
       { sessionCode: sessionCode },

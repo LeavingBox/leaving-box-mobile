@@ -59,6 +59,9 @@ export default function JoinGame() {
   };
 
   const handleBack = () => {
+    if (session?.code) {
+      Socket.emit("back", { sessionCode: session.code });
+    }
     Socket.emit(
       "clearSession",     
       { sessionCode: session?.code },

@@ -37,6 +37,9 @@ export default function JoinGame() {
   };
 
   const handleBack = () => {
+    if (code) {
+      Socket.emit("back", { sessionCode: code });
+    }
     Socket.off("playerJoined");
     Socket.off("currentSession");
     Socket.emit("leaveSession", { sessionCode: code, player: "Operator" });
