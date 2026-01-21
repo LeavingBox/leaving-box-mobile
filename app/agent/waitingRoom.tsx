@@ -15,6 +15,28 @@ import PlayerConnected from "@/components/PlayerConnected";
 import * as Clipboard from "expo-clipboard";
 import { ModuleManual } from "@/core/interface/module.interface";
 
+type OperatorSolution = {
+  moduleId: string;
+  solutions: string[];
+};
+
+const attachSolutionsToManuals = (
+  manuals: ModuleManual[],
+  operatorSolutions: OperatorSolution[]
+): ModuleManual[] =>
+  manuals.map((manual) => {
+    const manualId = manual._id ?? manual.moduleId ?? manual.name;
+    const matched = operatorSolutions.find(
+      (solution) =>
+        solution.moduleId === manualId || solution.moduleId === manual.moduleId
+    );
+
+    return {
+      ...manual,
+      solutions: matched?.solutions ?? manual.solutions ?? [],
+    };
+  });
+
 export default function WaitingRoom() {
   const router = useRouter();
   const { sessionCode, maxTime, role } = useLocalSearchParams();
@@ -40,23 +62,37 @@ export default function WaitingRoom() {
 
     Socket.on("currentSession", handleCurrentSession);
 
-    Socket.on("gameStarted", (data: { moduleManuals: ModuleManual[] }) => {
-      if (role === "operator") {
-        const serializedModules = JSON.stringify(data.moduleManuals);
+    Socket.on(
+      "gameStarted",
+      (data: {
+        moduleManuals: ModuleManual[];
+        solutionsByOperator?: Record<string, OperatorSolution[]>;
+      }) => {
+        if (role === "operator") {
+          const operatorId = Socket.id ?? "";
+          const mySolutions = operatorId
+            ? (data.solutionsByOperator?.[operatorId] ?? [])
+            : [];
+          const modulesForMe = attachSolutionsToManuals(
+            data.moduleManuals,
+            mySolutions
+          );
+          const serializedModules = JSON.stringify(modulesForMe);
 
-        router.navigate({
-          pathname: "/operator/manual",
-          params: {
-            sessionCode: sessionCode,
-            maxTime: maxTime,
-            role: role,
-            moduleManuals: serializedModules,
-          },
-        });
-      } else {
-        console.log("Game started, but not operator");
+          router.navigate({
+            pathname: "/operator/manual",
+            params: {
+              sessionCode: sessionCode,
+              maxTime: maxTime,
+              role: role,
+              moduleManuals: serializedModules,
+            },
+          });
+        } else {
+          console.log("Game started, but not operator");
+        }
       }
-    });
+    );
 
     return () => {
       clearInterval(interval);
