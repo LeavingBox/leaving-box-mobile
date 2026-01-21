@@ -66,12 +66,16 @@ export default function WaitingRoom() {
       Socket.off("currentSession", handleCurrentSession);
     };
   }, [sessionCode]);
-
+  useEffect(() => {
+    return () => {
+      handleBack();
+    };
+  }, []);
   useEffect(() => {
     const handleSessionCleared = (res: any) => {
       Alert.alert(
         "Fermeture de la session",
-        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée."
+        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée.",
       );
       handleBack();
     };
@@ -112,6 +116,13 @@ export default function WaitingRoom() {
     });
   };
 
+  const handleJoin = () => {
+    router.navigate({
+      pathname: "/operator/manual",
+      params: { sessionCode: sessionCode, role: "operator" },
+    });
+  };
+
   return (
     <ThemedView style={styles.container}>
       <Text style={styles.title}>Salle d'attente</Text>
@@ -144,7 +155,14 @@ export default function WaitingRoom() {
             color={"red"}
           />
         )}
-
+        {role === "operator" && (
+          <NavigationButton
+            onPress={handleJoin}
+            param={{ sessionCode: sessionCode }}
+            label="Rejoindre la partie"
+            color={"red"}
+          />
+        )}
         <NavigationButton
           onPress={handleBack}
           param={{ sessionCode: sessionCode }}

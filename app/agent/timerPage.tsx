@@ -1,7 +1,7 @@
 import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import { Socket } from "@/core/api/session.api";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -41,7 +41,7 @@ export default function TimerPage() {
       handleTime(data.remaining);
     });
     Socket.on("gameOver", (data: any) => {
-      Alert.alert("Fin de la partie", data.message,[
+      Alert.alert("Fin de la partie", data.message, [
         { text: "MENU", onPress: () => handleBack() },
       ]);
     });
@@ -51,6 +51,7 @@ export default function TimerPage() {
     if (sessionCode) {
       Socket.emit("back", { sessionCode: sessionCode as string });
     }
+    console.log("quitting session");
     Socket.emit(
       "clearSession",
       { sessionCode: sessionCode },
@@ -58,7 +59,7 @@ export default function TimerPage() {
         if (!res.success) {
           Alert.alert(
             "Erreur",
-            "Une erreur s'est produite lors de la fermeture de la session."
+            "Une erreur s'est produite lors de la fermeture de la session.",
           );
           return;
         }
@@ -67,14 +68,14 @@ export default function TimerPage() {
         router.navigate({
           pathname: "/agent/dificulty",
         });
-      }
+      },
     );
   };
-
-  const handleEndGame = () => {
-
-  }
-
+  useEffect(() => {
+    return () => {
+      handleBack();
+    };
+  }, []);
   return (
     <ThemedView style={styles.container}>
       <View style={styles.backButton}>

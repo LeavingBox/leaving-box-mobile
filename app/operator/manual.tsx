@@ -3,7 +3,12 @@ import ModuleInstructions from "@/components/manual/ModuleInstructions";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Socket } from "@/core/api/session.api";
 import { ModuleManual } from "@/core/interface/module.interface";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -24,7 +29,7 @@ export default function Manual() {
   const router = useRouter();
   const { sessionCode, maxTime, role, moduleManuals } = useLocalSearchParams();
   const [selectedManual, setSelectedManual] = useState<ModuleManual | null>(
-    null
+    null,
   );
   const Manuals: ModuleManual[] = JSON.parse(moduleManuals as string);
 
@@ -32,7 +37,7 @@ export default function Manual() {
     const handleSessionCleared = (res: any) => {
       Alert.alert(
         "Fermeture de la session",
-        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée."
+        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée.",
       );
       handleDisconnected();
     };
@@ -59,6 +64,20 @@ export default function Manual() {
     router.navigate({
       pathname: "/operator/joinGame",
     });
+  };
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", () => {
+      myFunction();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const myFunction = () => {
+    console.log("Screen is being exited");
   };
 
   return (

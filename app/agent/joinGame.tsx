@@ -11,7 +11,7 @@ import {
 import NavigationButton from "@/components/NavigationButton";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import CodeGame from "@/components/CodeGame";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Socket } from "@/core/api/session.api";
 import { Session } from "@/core/interface/sesssion.interface";
 import Description from "@/components/gameplay/description";
@@ -62,21 +62,22 @@ export default function JoinGame() {
     if (session?.code) {
       Socket.emit("back", { sessionCode: session.code });
     }
+    console.log("should close");
     Socket.emit(
-      "clearSession",     
+      "clearSession",
       { sessionCode: session?.code },
-      (res: { success: boolean }) => { 
+      (res: { success: boolean }) => {
         if (!res.success) {
           Alert.alert(
             "Erreur",
-            "Une erreur s'est produite lors de la fermeture de la session."
+            "Une erreur s'est produite lors de la fermeture de la session.",
           );
           return;
         }
         Socket.removeAllListeners();
         Socket.disconnect();
         router.replace("/agent/dificulty");
-      }
+      },
     );
   };
 
@@ -90,6 +91,12 @@ export default function JoinGame() {
       },
     });
   };
+  const navigation = useNavigation();
+  useEffect(() => {
+    return () => {
+      handleBack();
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -123,14 +130,16 @@ export default function JoinGame() {
         <Description />
 
         <TouchableOpacity style={{ marginBottom: 20 }}>
-            <CustomButton onPress={() => setIsManualVisible(true)}
-             buttonText="Ouvrir le manuel" />
+          <CustomButton
+            onPress={() => setIsManualVisible(true)}
+            buttonText="Ouvrir le manuel"
+          />
         </TouchableOpacity>
 
-          <ManualScreen 
-            isVisible={isManualVisible} 
-            onClose={() => setIsManualVisible(false)} 
-          />
+        <ManualScreen
+          isVisible={isManualVisible}
+          onClose={() => setIsManualVisible(false)}
+        />
 
         <View style={styles.codeContainer}>
           <TextInput
