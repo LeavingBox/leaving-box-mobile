@@ -1,14 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { LinearGradient } from "expo-linear-gradient";
 import NavigationButton from "@/components/NavigationButton";
 import { Socket } from "@/core/api/session.api";
+import { clearSession } from "@/core/service/session.service";
 import { useRouter } from "expo-router";
 
+/**
+ * Page de connexion pour les opérateurs
+ * 
+ * Les opérateurs rejoignent une session existante créée par un agent.
+ * Plusieurs opérateurs peuvent rejoindre la même session.
+ */
 export default function JoinGame() {
   const router = useRouter();
   const [code, setCode] = useState("");
+
+  useEffect(() => {
+    const handleSessionClosed = async (data: any) => {
+      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
+      console.log("Session closed détecté:", data);
+      await clearSession();
+      Socket.removeAllListeners();
+      Socket.disconnect();
+      router.replace("/");
+    };
+
+    Socket.on("sessionClosed", handleSessionClosed);
+
+    return () => {
+      Socket.off("sessionClosed", handleSessionClosed);
+    };
+  }, []);
 
   const joinGame = () => {
     Socket.connect();
@@ -17,9 +41,11 @@ export default function JoinGame() {
       { sessionCode: code },
       (response: { success: boolean; message?: string }) => {
         if (response.success) {
+          // Rejoindre la session en tant qu'opérateur
           Socket.emit("joinSession", {
             sessionCode: code,
             player: "Operator",
+            role: "operator", // Indiquer explicitement que c'est un opérateur
           });
           Socket.on("playerJoined", () => {
             console.log("playerJoined");
@@ -38,11 +64,15 @@ export default function JoinGame() {
 
   const handleBack = () => {
     if (code) {
-      Socket.emit("back", { sessionCode: code });
+      Socket.emit("back", { 
+        sessionCode: code,
+        role: "operator" // Indiquer que c'est un opérateur qui fait retour en arrière
+      });
     }
     Socket.off("playerJoined");
     Socket.off("currentSession");
     Socket.emit("leaveSession", { sessionCode: code, player: "Operator" });
+    Socket.disconnect();
     router.navigate("/");
   };
 

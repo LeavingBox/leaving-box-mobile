@@ -11,11 +11,13 @@ export default function ModuleInstructions({
     <View>
       <Text style={styles.title}>{manual.name}</Text>
       <Text style={styles.description}>{manual.description}</Text>
-      {manual.rules?.map((rule, index) => (
-        <Text key={index} style={styles.rules}>
-          {rule}
-        </Text>
-      ))}
+      {manual.rules && Array.isArray(manual.rules) && manual.rules.length > 0 && (
+        manual.rules.map((rule, index) => (
+          <Text key={index} style={styles.rules}>
+            {rule}
+          </Text>
+        ))
+      )}
 
       <Image
         resizeMode="contain"

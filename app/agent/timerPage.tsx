@@ -1,6 +1,7 @@
 import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import { Socket } from "@/core/api/session.api";
+import { clearSession } from "@/core/service/session.service";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
@@ -10,13 +11,6 @@ export default function TimerPage() {
   const { sessionCode, maxTime, role } = useLocalSearchParams();
   const [minutes, setMinutes] = useState("0");
   const [seconds, setSeconds] = useState("0");
-
-  useEffect(() => {
-    handleTime(maxTime as any);
-    setTimeout(() => {
-      handleTimer();
-    }, 1000);
-  }, []);
 
   function formatTime(totalSeconds: number) {
     const minutes = Math.floor(totalSeconds / 60);
@@ -33,28 +27,86 @@ export default function TimerPage() {
     setSeconds(seconds);
   };
 
-  const handleTimer = () => {
-    console.log("Starting timer");
-    Socket.emit("startTimer", { sessionCode: sessionCode });
-    Socket.on("timerUpdate", (data: any) => {
+  useEffect(() => {
+    handleTime(maxTime as any);
+    
+    // Démarrer le timer après 1 seconde
+    const timerTimeout = setTimeout(() => {
+      console.log("Starting timer");
+      Socket.emit("startTimer", { 
+        sessionCode: sessionCode,
+        role: role // Indiquer le rôle de celui qui démarre le timer (devrait être "agent")
+      });
+    }, 1000);
+
+    // Gestionnaires d'événements Socket
+    const handleTimerUpdate = (data: any) => {
       console.log("Timer update", data);
       handleTime(data.remaining);
-    });
-    Socket.on("gameOver", (data: any) => {
+    };
+
+    const handleGameOver = async (data: any) => {
       Alert.alert("Fin de la partie", data.message, [
-        { text: "MENU", onPress: () => handleBack() },
+        { 
+          text: "MENU", 
+          onPress: async () => {
+            await clearSession();
+            Socket.removeAllListeners();
+            Socket.disconnect();
+            router.replace("/");
+          }
+        },
       ]);
-    });
-  };
+    };
+
+    const handleSessionCleared = async (res: any) => {
+      // La session se ferme automatiquement si les conditions de validation ne sont plus remplies
+      const message = res?.message || 
+        "La session a été fermée. Le timer s'arrête.";
+      Alert.alert("Session fermée", message, [
+        { 
+          text: "OK", 
+          onPress: async () => {
+            await clearSession();
+            Socket.removeAllListeners();
+            Socket.disconnect();
+            router.replace("/");
+          }
+        },
+      ]);
+    };
+
+    const handleSessionClosed = async (data: any) => {
+      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
+      console.log("Session closed détecté:", data);
+      await clearSession();
+      Socket.removeAllListeners();
+      Socket.disconnect();
+      router.replace("/");
+    };
+
+    Socket.on("timerUpdate", handleTimerUpdate);
+    Socket.on("gameOver", handleGameOver);
+    Socket.on("sessionCleared", handleSessionCleared);
+    Socket.on("sessionClosed", handleSessionClosed);
+
+    return () => {
+      clearTimeout(timerTimeout);
+      Socket.off("timerUpdate", handleTimerUpdate);
+      Socket.off("gameOver", handleGameOver);
+      Socket.off("sessionCleared", handleSessionCleared);
+      Socket.off("sessionClosed", handleSessionClosed);
+    };
+  }, [sessionCode, role]);
 
   const handleBack = () => {
-    if (sessionCode) {
-      Socket.emit("back", { sessionCode: sessionCode as string });
-    }
     console.log("quitting session");
     Socket.emit(
       "clearSession",
-      { sessionCode: sessionCode },
+      { 
+        sessionCode: sessionCode,
+        role: role // Indiquer le rôle de celui qui ferme la session
+      },
       (res: { success: boolean }) => {
         if (!res.success) {
           Alert.alert(

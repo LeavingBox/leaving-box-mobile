@@ -13,6 +13,7 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import CodeGame from "@/components/CodeGame";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Socket } from "@/core/api/session.api";
+import { clearSession } from "@/core/service/session.service";
 import { Session } from "@/core/interface/sesssion.interface";
 import Description from "@/components/gameplay/description";
 import ManualScreen from "@/components/gameplay/ManualScreen";
@@ -20,6 +21,12 @@ import CustomButton from "@/components/CustomButton";
 import { LinearGradient } from "expo-linear-gradient";
 import SkeletonLoader from "@/components/agent-joinGame/SkeletonLoader";
 
+/**
+ * Page de création de session pour l'agent
+ * 
+ * L'agent crée une nouvelle session et devient automatiquement l'agent de cette session.
+ * Il ne peut y avoir qu'un seul agent par session.
+ */
 export default function JoinGame() {
   const router = useRouter();
   const { difficulty } = useLocalSearchParams();
@@ -30,7 +37,11 @@ export default function JoinGame() {
   const [isManualVisible, setIsManualVisible] = useState(false);
 
   useEffect(() => {
-    Socket.emit("createSession", { difficulty: difficulty });
+    // Créer une nouvelle session - l'agent devient automatiquement l'agent de cette session
+    Socket.emit("createSession", { 
+      difficulty: difficulty,
+      role: "agent" // Indiquer explicitement que c'est un agent
+    });
     Socket.on("sessionCreated", (session) => {
       setSession(session);
       handleTime(session.maxTime);
@@ -38,8 +49,20 @@ export default function JoinGame() {
       setIsLoading(false);
     });
 
+    const handleSessionClosed = async (data: any) => {
+      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
+      console.log("Session closed détecté:", data);
+      await clearSession();
+      Socket.removeAllListeners();
+      Socket.disconnect();
+      router.replace("/");
+    };
+
+    Socket.on("sessionClosed", handleSessionClosed);
+
     return () => {
       Socket.off("sessionCreated");
+      Socket.off("sessionClosed", handleSessionClosed);
     };
   }, []);
 
@@ -59,13 +82,13 @@ export default function JoinGame() {
   };
 
   const handleBack = () => {
-    if (session?.code) {
-      Socket.emit("back", { sessionCode: session.code });
-    }
     console.log("should close");
     Socket.emit(
       "clearSession",
-      { sessionCode: session?.code },
+      { 
+        sessionCode: session?.code,
+        role: "agent" // Indiquer que c'est l'agent qui ferme la session
+      },
       (res: { success: boolean }) => {
         if (!res.success) {
           Alert.alert(
