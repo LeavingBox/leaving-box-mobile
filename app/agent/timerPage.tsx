@@ -2,7 +2,7 @@ import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import { Socket } from "@/core/api/session.api";
 import { clearSession } from "@/core/service/session.service";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -32,7 +32,6 @@ export default function TimerPage() {
 
     // Démarrer le timer après 1 seconde
     const timerTimeout = setTimeout(() => {
-      console.log("Starting timer");
       Socket.emit("startTimer", {
         sessionCode: sessionCode,
         role: role, // Indiquer le rôle de celui qui démarre le timer (devrait être "agent")
@@ -40,8 +39,7 @@ export default function TimerPage() {
     }, 1000);
 
     // Gestionnaires d'événements Socket
-    const handleTimerUpdate = (data: any) => {
-      console.log("Timer update", data);
+    const handleTimerUpdate = (data: { remaining: number }) => {
       handleTime(data.remaining);
     };
 
@@ -123,11 +121,6 @@ export default function TimerPage() {
       },
     );
   };
-  useEffect(() => {
-    return () => {
-      handleBack();
-    };
-  }, []);
   return (
     <ThemedView style={styles.container}>
       <View style={styles.backButton}>

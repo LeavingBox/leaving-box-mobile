@@ -12,18 +12,17 @@ export const Socket = io(
   }
 );
 
-Socket.on("connect", () => {
-  console.log("Socket connected:", Socket.id);
-});
-
-Socket.on("connect_error", (err) => {
-  console.error("Connection error:", err);
-});
-
-Socket.on("error", (error) => {
-  console.error("Socket error:", error);
-});
-
-Socket.on("disconnect", (reason) => {
-  console.error("Socket disconnected:", reason);
-});
+if (__DEV__) {
+  Socket.on("connect", () => {
+    console.log("[Socket] Connecté:", Socket.id);
+  });
+  Socket.on("connect_error", (err) => {
+    console.warn("[Socket] Erreur de connexion:", err.message);
+  });
+  Socket.on("error", (err) => {
+    console.warn("[Socket] Erreur:", err);
+  });
+  Socket.on("disconnect", (reason) => {
+    console.log("[Socket] Déconnecté:", reason);
+  });
+}
