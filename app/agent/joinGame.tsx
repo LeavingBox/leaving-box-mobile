@@ -48,8 +48,8 @@ export default function JoinGame() {
         setIsLoading(false);
         Alert.alert(
           "Erreur de connexion",
-          "La connexion au serveur prend trop de temps. Vérifiez que:\n" +
-          "1. Le serveur WebSocket est démarré\n" +
+          "La création de session prend trop de temps. Le WebSocket est connecté mais le serveur n'a pas répondu. Vérifiez que:\n" +
+          "1. Le serveur WebSocket est démarré et traite l'événement 'createSession'\n" +
           "2. L'URL est correcte dans .env (EXPO_PUBLIC_WEBSOCKET_URL)\n" +
           "3. Votre appareil est sur le même réseau que le serveur",
           [
