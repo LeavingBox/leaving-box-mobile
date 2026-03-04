@@ -23,9 +23,11 @@ import { ModuleManual } from "@/core/interface/module.interface";
  * - 1 seul agent par session (créateur de la session)
  * - 1 ou plusieurs opérateurs peuvent rejoindre la session
  */
+type SolutionWithIndex = { index: number; text: string };
+
 type AnalystSolution = {
   moduleId: string;
-  solutions: string[];
+  solutions: string[] | SolutionWithIndex[];
 };
 
 const attachSolutionsToManuals = (
@@ -145,7 +147,7 @@ export default function WaitingRoom() {
             manualsWithSolutions = normalizedModules.map((manual) => {
               const manualId = String(manual._id || manual.moduleId);
               const matchedSolutions = mySolutions.find(
-                (sol: { moduleId: string; solutions: string[] }) =>
+                (sol) =>
                   String(sol.moduleId) === manualId ||
                   String(sol.moduleId) === String(manual._id) ||
                   String(sol.moduleId) === String(manual.moduleId),
