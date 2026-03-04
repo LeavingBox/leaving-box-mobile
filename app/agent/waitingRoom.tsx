@@ -56,12 +56,13 @@ export default function WaitingRoom() {
 
   useEffect(() => {
     const interval = setInterval(() => Socket.emit("getSession", { sessionCode, role }), 1000);
-    Socket.on("currentSession", (data: Session) => {
+
+    const handleCurrentSession = (data: Session) => {
       setSession(data);
       setIsLoading(false);
-    });
+    };
 
-    Socket.on("gameStarted", (data: GameStartedData) => {
+    const handleGameStarted = (data: GameStartedData) => {
       const modules = data.moduleManuals?.map((m) => toModuleManual(m as Record<string, unknown>)) ?? [];
       if (modules.length === 0) return;
 
@@ -84,11 +85,15 @@ export default function WaitingRoom() {
           params: { sessionCode, maxTime, role, moduleManuals: JSON.stringify(manuals) },
         });
       }
-    });
+    };
+
+    Socket.on("currentSession", handleCurrentSession);
+    Socket.on("gameStarted", handleGameStarted);
 
     return () => {
       clearInterval(interval);
-      Socket.off("currentSession");
+      Socket.off("currentSession", handleCurrentSession);
+      Socket.off("gameStarted", handleGameStarted);
     };
   }, [sessionCode, role]);
 
