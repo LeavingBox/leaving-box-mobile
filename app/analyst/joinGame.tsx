@@ -39,13 +39,13 @@ export default function JoinGame() {
       { sessionCode: code },
       (response: { success: boolean; message?: string }) => {
         if (response.success) {
-          // Rejoindre la session en tant qu'opérateur
+          Socket.off("playerJoined");
           Socket.emit("joinSession", {
             sessionCode: code,
             player: "analyste",
-            role: "analyste", // Indiquer explicitement que c'est un opérateur
+            role: "analyste",
           });
-          Socket.on(
+          Socket.once(
             "playerJoined",
             (data: {
               playerId?: string;
@@ -69,7 +69,6 @@ export default function JoinGame() {
                 return;
               }
 
-              Socket.off("playerJoined");
               router.navigate({
                 pathname: "/agent/waitingRoom",
                 params: {

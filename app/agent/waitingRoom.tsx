@@ -31,7 +31,7 @@ const toModuleManual = (raw: Record<string, unknown>): ModuleManual => {
     description: String(src.description ?? ""),
     rules: typeof rules === "string" ? [rules] : Array.isArray(rules) ? (rules as string[]) : [],
     imgUrl: src.imgUrl as string | undefined,
-    solutions: (raw.solutions as ModuleManual["solutions"]) ?? [],
+    solutions: (src.solutions as ModuleManual["solutions"]) ?? [],
   };
 };
 
@@ -64,9 +64,23 @@ export default function WaitingRoom() {
 
     const handleGameStarted = (data: GameStartedData) => {
       const modules = data.moduleManuals?.map((m) => toModuleManual(m as Record<string, unknown>)) ?? [];
-      if (modules.length === 0) return;
+      if (modules.length === 0) {
+        setModuleManuals([]);
+        if (role === "analyste") {
+          Alert.alert(
+            "Erreur",
+            "Aucun module reçu. La partie n'a pas pu démarrer correctement.",
+            [{ text: "OK" }],
+          );
+        }
+        return;
+      }
 
-      const mySolutions = Socket.id ? data.solutionsByAnalyste?.[Socket.id] : undefined;
+      const socketId = Socket.id;
+      if (role === "analyste" && !socketId && data.solutionsByAnalyste) {
+        console.warn("[WaitingRoom] Socket.id indéfini : solutions par analyste non appliquées.");
+      }
+      const mySolutions = socketId ? data.solutionsByAnalyste?.[socketId] : undefined;
       const manuals =
         role === "analyste" && mySolutions
           ? modules.map((manual) => {
