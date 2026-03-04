@@ -3,7 +3,7 @@ export interface Session {
   code: string;
   agentId: string;
   maxTime: number;
-  operatorIds: string[];
+  analystIds: string[];
   createdAt: Date;
 }
 

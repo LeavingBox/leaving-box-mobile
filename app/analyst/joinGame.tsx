@@ -19,26 +19,26 @@ export default function JoinGame() {
         if (response.success) {
           Socket.emit("joinSession", {
             sessionCode: code,
-            player: "Operator",
+            player: "analyste",
           });
           Socket.on("playerJoined", () => {
             Socket.off("playerJoined");
             router.navigate({
               pathname: "/agent/waitingRoom",
-              params: { sessionCode: code, role: "operator" },
+              params: { sessionCode: code, role: "analyste" },
             });
           });
         } else {
           Alert.alert("Error while joining session", response.message);
         }
-      }
+      },
     );
   };
 
   const handleBack = () => {
     Socket.off("playerJoined");
     Socket.off("currentSession");
-    Socket.emit("leaveSession", { sessionCode: code, player: "Operator" });
+    Socket.emit("leaveSession", { sessionCode: code, player: "analyste" });
     router.navigate("/");
   };
 

@@ -15,18 +15,18 @@ import PlayerConnected from "@/components/PlayerConnected";
 import * as Clipboard from "expo-clipboard";
 import { ModuleManual } from "@/core/interface/module.interface";
 
-type OperatorSolution = {
+type AnalystSolution = {
   moduleId: string;
   solutions: string[];
 };
 
 const attachSolutionsToManuals = (
   manuals: ModuleManual[],
-  operatorSolutions: OperatorSolution[],
+  analystSolutions: AnalystSolution[],
 ): ModuleManual[] =>
   manuals.map((manual) => {
     const manualId = manual._id ?? manual.moduleId ?? manual.name;
-    const matched = operatorSolutions.find(
+    const matched = analystSolutions.find(
       (solution) =>
         solution.moduleId === manualId || solution.moduleId === manual.moduleId,
     );
@@ -44,7 +44,7 @@ export default function WaitingRoom() {
   const [session, setSession] = useState<any>();
 
   const handleBack = () => {
-    if (role === "operator") {
+    if (role === "analyste") {
       Socket.disconnect();
     }
     router.back();
@@ -66,12 +66,12 @@ export default function WaitingRoom() {
       "gameStarted",
       (data: {
         moduleManuals: ModuleManual[];
-        solutionsByOperator?: Record<string, OperatorSolution[]>;
+        solutionsByAnalyst?: Record<string, AnalystSolution[]>;
       }) => {
-        if (role === "operator") {
-          const operatorId = Socket.id ?? "";
-          const mySolutions = operatorId
-            ? (data.solutionsByOperator?.[operatorId] ?? [])
+        if (role === "analyste") {
+          const analystId = Socket.id ?? "";
+          const mySolutions = analystId
+            ? (data.solutionsByAnalyst?.[analystId] ?? [])
             : [];
           const modulesForMe = attachSolutionsToManuals(
             data.moduleManuals,
@@ -153,7 +153,7 @@ export default function WaitingRoom() {
         />
       ) : (
         session?.connectedClients.map((client: any, key: any) => (
-          <PlayerConnected key={key} role={key === 0 ? "agent" : "operator"} />
+          <PlayerConnected key={key} role={key === 0 ? "agent" : "analyste"} />
         ))
       )}
       <View style={styles.buttonContainer}>

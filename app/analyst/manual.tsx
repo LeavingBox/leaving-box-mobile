@@ -24,7 +24,7 @@ export default function Manual() {
   const router = useRouter();
   const { sessionCode, maxTime, role, moduleManuals } = useLocalSearchParams();
   const [selectedManual, setSelectedManual] = useState<ModuleManual | null>(
-    null
+    null,
   );
   const Manuals: ModuleManual[] = JSON.parse(moduleManuals as string);
 
@@ -32,7 +32,7 @@ export default function Manual() {
     const handleSessionCleared = (res: any) => {
       Alert.alert(
         "Fermeture de la session",
-        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée."
+        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée.",
       );
       handleDisconnected();
     };
@@ -57,7 +57,7 @@ export default function Manual() {
   const handleDisconnected = () => {
     Socket.disconnect();
     router.navigate({
-      pathname: "/operator/joinGame",
+      pathname: "/analyst/joinGame",
     });
   };
 
@@ -96,7 +96,7 @@ export default function Manual() {
               <ModuleInstructions manual={selectedManual} />
             ) : (
               <Text style={styles.title}>
-                Bomb Defusal Manual, for an Operator
+                Bomb Defusal Manual, for an analyst
               </Text>
             )}
           </View>

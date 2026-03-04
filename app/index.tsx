@@ -6,8 +6,16 @@ import RoleSelector from "@/components/RoleSelector/RoleSelector";
 export default function HomeScreen() {
   return (
     <ThemedView style={styles.mainContainer}>
-      <RoleSelector imgLink={require("@/assets/images/femaleAgent.png")} text={"Agent"} onPress={() => router.navigate("/agent/joinGame")}/>
-      <RoleSelector imgLink={require("@/assets/images/maleScientist.png")} text={"Analyst"} onPress={() => router.navigate("/agent/joinGame")}/>
+      <RoleSelector
+        imgLink={require("@/assets/images/femaleAgent.png")}
+        text={"Agent"}
+        onPress={() => router.navigate("/agent/joinGame")}
+      />
+      <RoleSelector
+        imgLink={require("@/assets/images/maleScientist.png")}
+        text={"Analyst"}
+        onPress={() => router.navigate("/agent/joinGame")}
+      />
     </ThemedView>
   );
 }
@@ -18,7 +26,7 @@ const styles = StyleSheet.create({
     marginBottom: "10%",
     flex: 1,
     height: "100%",
-    flexDirection: "column",   
-    gap:'10%',    
-  }
+    flexDirection: "column",
+    gap: "10%",
+  },
 });
