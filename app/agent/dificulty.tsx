@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Alert,
 } from "react-native";
 import { useState, useRef } from "react";
 import NavigationButton from "@/components/NavigationButton";
@@ -16,6 +17,7 @@ import { Socket } from "@/core/api/session.api";
 export default function DifficultyScreen() {
   const router = useRouter();
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("");
+  const [selectedGameMode, setSelectedGameMode] = useState<string>("ONE_OPERATOR_ONE_MODULE");
   const windowWidth = Dimensions.get("window").width;
   const animatedWidth = useRef(new Animated.Value(windowWidth * 0.3)).current;
   const animatedPosition = useRef(new Animated.Value(0)).current;
@@ -24,6 +26,11 @@ export default function DifficultyScreen() {
     Easy: "Un mode relaxant, parfait pour les débutants.",
     Medium: "Un bon challenge avec quelques difficultés.",
     Hard: "Un mode extrême, réservé aux experts !",
+  };
+
+  const gameModeDetails: Record<string, string> = {
+    ONE_OPERATOR_ONE_MODULE: "Chaque opérateur reçoit des modules complets avec toutes leurs solutions.",
+    RANDOM_ONE_MODULE_SPLIT: "Tous les opérateurs voient tous les modules, solutions réparties en round-robin.",
   };
 
   const handleDifficultySelect = (difficulty: string) => {
@@ -66,11 +73,35 @@ export default function DifficultyScreen() {
 
   const handleNext = () => {
     if (selectedDifficulty) {
-      Socket.connect();
-      router.navigate({
-        pathname: "/agent/joinGame",
-        params: { difficulty: selectedDifficulty },
-      });
+      // Vérifier que l'URL WebSocket est définie avant de connecter
+      const websocketUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL;
+      if (!websocketUrl) {
+        Alert.alert(
+          "Configuration manquante",
+          "EXPO_PUBLIC_WEBSOCKET_URL n'est pas défini. Veuillez créer un fichier .env avec cette variable.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      // Connecter le socket avant de naviguer
+      try {
+        Socket.connect();
+        router.navigate({
+          pathname: "/agent/joinGame",
+          params: { 
+            difficulty: selectedDifficulty,
+            gameMode: selectedGameMode,
+          },
+        });
+      } catch (error) {
+        console.error("Erreur lors de la connexion:", error);
+        Alert.alert(
+          "Erreur de connexion",
+          "Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et que l'URL est correcte.",
+          [{ text: "OK" }]
+        );
+      }
     }
   };
 
@@ -158,6 +189,53 @@ export default function DifficultyScreen() {
             <Text style={styles.detailsText}>
               {difficultyDetails[selectedDifficulty]}
             </Text>
+          </View>
+        )}
+
+        {selectedDifficulty && (
+          <View style={styles.gameModeContainer}>
+            <Text style={styles.gameModeTitle}>Mode de jeu</Text>
+            <View style={styles.gameModeButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.gameModeButton,
+                  selectedGameMode === "ONE_OPERATOR_ONE_MODULE" && styles.gameModeButtonSelected,
+                ]}
+                onPress={() => setSelectedGameMode("ONE_OPERATOR_ONE_MODULE")}
+              >
+                <Text
+                  style={[
+                    styles.gameModeText,
+                    selectedGameMode === "ONE_OPERATOR_ONE_MODULE" && styles.gameModeTextSelected,
+                  ]}
+                >
+                  Standard
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.gameModeButton,
+                  selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" && styles.gameModeButtonSelected,
+                ]}
+                onPress={() => setSelectedGameMode("RANDOM_ONE_MODULE_SPLIT")}
+              >
+                <Text
+                  style={[
+                    styles.gameModeText,
+                    selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" && styles.gameModeTextSelected,
+                  ]}
+                >
+                  Split
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {selectedGameMode && (
+              <View style={styles.gameModeDetailsContainer}>
+                <Text style={styles.gameModeDetailsText}>
+                  {gameModeDetails[selectedGameMode]}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -279,5 +357,63 @@ const styles = StyleSheet.create({
     color: "#1E1E1E",
     fontWeight: "bold",
     textAlign: "center",
+  },
+
+  gameModeContainer: {
+    marginTop: 30,
+    padding: 20,
+    alignItems: "center",
+  },
+
+  gameModeTitle: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+
+  gameModeButtons: {
+    flexDirection: "row",
+    gap: 15,
+    width: "100%",
+    justifyContent: "center",
+  },
+
+  gameModeButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#666",
+    backgroundColor: "transparent",
+    minWidth: 120,
+    alignItems: "center",
+  },
+
+  gameModeButtonSelected: {
+    borderColor: "#4CAF50",
+    backgroundColor: "#4CAF50",
+  },
+
+  gameModeText: {
+    color: "#999",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  gameModeTextSelected: {
+    color: "white",
+  },
+
+  gameModeDetailsContainer: {
+    marginTop: 15,
+    paddingHorizontal: 20,
+  },
+
+  gameModeDetailsText: {
+    color: "#ccc",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

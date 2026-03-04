@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Session } from '../interface/sesssion.interface';
+import { Session } from "../interface/session.interface";
 
 const SESSION_KEY = 'current_session';
 
