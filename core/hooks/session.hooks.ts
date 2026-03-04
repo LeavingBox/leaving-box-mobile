@@ -54,7 +54,7 @@ export function useSocketLifecycle() {
 
     const handleDisconnect = (reason: string) => {
       setIsConnected(false);
-      console.log("Socket disconnected:", reason);
+      console.error("Socket disconnected:", reason);
     };
 
     const handleError = (err: Error) => {

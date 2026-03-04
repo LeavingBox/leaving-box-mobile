@@ -13,7 +13,7 @@ export const Socket = io(
 );
 
 Socket.on("connect", () => {
-  console.log("Socket connected:", Socket.id);
+  console.error("Socket connected:", Socket.id);
 });
 
 Socket.on("connect_error", (err) => {
@@ -25,5 +25,5 @@ Socket.on("error", (error) => {
 });
 
 Socket.on("disconnect", (reason) => {
-  console.log("Socket disconnected:", reason);
+  console.error("Socket disconnected:", reason);
 });

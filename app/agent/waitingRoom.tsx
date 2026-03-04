@@ -22,12 +22,13 @@ type AnalystSolution = {
 
 const attachSolutionsToManuals = (
   manuals: ModuleManual[],
-  analystSolution: AnalystSolution[],
+  operatorSolutions: OperatorSolution[],
 ): ModuleManual[] =>
   manuals.map((manual) => {
     const manualId = manual._id ?? manual.moduleId ?? manual.name;
     const matched = analystSolution.find(
       (solution) =>
+        solution.moduleId === manualId || solution.moduleId === manual.moduleId,
         solution.moduleId === manualId || solution.moduleId === manual.moduleId,
     );
 
@@ -89,8 +90,9 @@ export default function WaitingRoom() {
             },
           });
         } else {
-          console.log("Game started, but no analyst");
+          console.error("Game started, but no operator");
         }
+      },
       },
     );
 
@@ -104,6 +106,7 @@ export default function WaitingRoom() {
     const handleSessionCleared = (res: any) => {
       Alert.alert(
         "Fermeture de la session",
+        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée.",
         "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée.",
       );
       handleBack();
