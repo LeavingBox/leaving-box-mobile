@@ -7,14 +7,16 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.mainContainer}>
       <RoleSelector
-        imgLink={require("@/assets/images/femaleAgent.png")}
+        imgLink={require("@/assets/images/agent_DA.png")}
         text={"Agent"}
         onPress={() => router.navigate("/agent/joinGame")}
+        isAgent={true}
       />
       <RoleSelector
-        imgLink={require("@/assets/images/maleScientist.png")}
+        imgLink={require("@/assets/images/analyst_DA.png")}
         text={"Analyst"}
         onPress={() => router.navigate("/agent/joinGame")}
+        isAgent={false}
       />
     </ThemedView>
   );
@@ -22,11 +24,12 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    marginTop: "20%",
-    marginBottom: "10%",
+    marginTop: "0%",
+    marginBottom: "0%",
     flex: 1,
     height: "100%",
     flexDirection: "column",
-    gap: "10%",
+    backgroundColor: "white",
+    gap: "5%",
   },
 });
