@@ -23,7 +23,7 @@ import SkeletonLoader from "@/components/agent-joinGame/SkeletonLoader";
 
 /**
  * Page de création de session pour l'agent
- * 
+ *
  * L'agent crée une nouvelle session et devient automatiquement l'agent de cette session.
  * Il ne peut y avoir qu'un seul agent par session.
  */
@@ -49,38 +49,38 @@ export default function JoinGame() {
         Alert.alert(
           "Erreur de connexion",
           "La création de session prend trop de temps. Le WebSocket est connecté mais le serveur n'a pas répondu. Vérifiez que:\n" +
-          "1. Le serveur WebSocket est démarré et traite l'événement 'createSession'\n" +
-          "2. L'URL est correcte dans .env (EXPO_PUBLIC_WEBSOCKET_URL)\n" +
-          "3. Votre appareil est sur le même réseau que le serveur",
+            "1. Le serveur WebSocket est démarré et traite l'événement 'createSession'\n" +
+            "2. L'URL est correcte dans .env (EXPO_PUBLIC_WEBSOCKET_URL)\n" +
+            "3. Votre appareil est sur le même réseau que le serveur",
           [
             {
               text: "Réessayer",
               onPress: () => {
                 setIsLoading(true);
                 Socket.connect();
-                Socket.emit("createSession", { 
+                Socket.emit("createSession", {
                   difficulty: difficulty,
                   gameMode: gameMode || "ONE_OPERATOR_ONE_MODULE",
-                  role: "agent"
+                  role: "agent",
                 });
-              }
+              },
             },
             {
               text: "Retour",
               onPress: () => router.back(),
-              style: "cancel"
-            }
-          ]
+              style: "cancel",
+            },
+          ],
         );
       }
     }, 10000); // 10 secondes de timeout
 
     // Gestionnaire de succès de connexion
     const handleConnect = () => {
-      Socket.emit("createSession", { 
+      Socket.emit("createSession", {
         difficulty: difficulty,
         gameMode: gameMode || "ONE_OPERATOR_ONE_MODULE",
-        role: "agent"
+        role: "agent",
       });
     };
 
@@ -92,23 +92,23 @@ export default function JoinGame() {
       Alert.alert(
         "Erreur de connexion",
         `Impossible de se connecter au serveur:\n${err.message}\n\nVérifiez que:\n` +
-        "1. Le serveur WebSocket est démarré\n" +
-        "2. EXPO_PUBLIC_WEBSOCKET_URL est défini dans .env\n" +
-        "3. L'URL est accessible depuis votre appareil",
+          "1. Le serveur WebSocket est démarré\n" +
+          "2. EXPO_PUBLIC_WEBSOCKET_URL est défini dans .env\n" +
+          "3. L'URL est accessible depuis votre appareil",
         [
           {
             text: "Réessayer",
             onPress: () => {
               setIsLoading(true);
               Socket.connect();
-            }
+            },
           },
           {
             text: "Retour",
             onPress: () => router.back(),
-            style: "cancel"
-          }
-        ]
+            style: "cancel",
+          },
+        ],
       );
     };
 
@@ -165,9 +165,9 @@ export default function JoinGame() {
   const handleBack = () => {
     Socket.emit(
       "clearSession",
-      { 
+      {
         sessionCode: session?.code,
-        role: "agent" // Indiquer que c'est l'agent qui ferme la session
+        role: "agent", // Indiquer que c'est l'agent qui ferme la session
       },
       (res: { success: boolean }) => {
         if (!res.success) {

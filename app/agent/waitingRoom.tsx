@@ -169,7 +169,7 @@ export default function WaitingRoom() {
           const serializedModules = JSON.stringify(manualsWithSolutions);
 
           router.navigate({
-            pathname: "/analyste/manual",
+            pathname: "/analyst/manual",
             params: {
               sessionCode: sessionCode,
               maxTime: maxTime,
@@ -280,10 +280,10 @@ export default function WaitingRoom() {
     if (moduleManuals.length > 0) {
       const serializedModules = JSON.stringify(moduleManuals);
       router.navigate({
-        pathname: "/operator/manual",
+        pathname: "/analyst/manual",
         params: {
           sessionCode: sessionCode,
-          role: "operator",
+          role: "analyste",
           moduleManuals: serializedModules,
           maxTime: maxTime,
         },
@@ -326,11 +326,11 @@ export default function WaitingRoom() {
               )}
               {/* Afficher tous les opérateurs (un ou plusieurs) */}
               {session.players
-                .filter((p: any) => p.role === "operator")
+                .filter((p: any) => p.role === "analyste")
                 .map((operator: any, index: number) => (
                   <PlayerConnected
                     key={`operator-${operator.id || index}`}
-                    role="operator"
+                    role="analyste"
                   />
                 ))}
             </>
@@ -339,7 +339,7 @@ export default function WaitingRoom() {
             session?.connectedClients?.map((client: any, key: any) => (
               <PlayerConnected
                 key={key}
-                role={key === 0 ? "agent" : "operator"}
+                role={key === 0 ? "agent" : "analyste"}
               />
             ))
           )}
@@ -354,7 +354,7 @@ export default function WaitingRoom() {
             color={"red"}
           />
         )}
-        {role === "operator" && (
+        {role === "analyste" && (
           <NavigationButton
             onPress={handleJoin}
             param={{ sessionCode: sessionCode }}

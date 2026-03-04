@@ -9,12 +9,12 @@ export default function HomeScreen() {
       <RoleSelector
         imgLink={require("@/assets/images/femaleAgent.png")}
         text={"Agent"}
-        onPress={() => router.navigate("/agent/joinGame")}
+        onPress={() => router.navigate("/agent/dificulty")}
       />
       <RoleSelector
         imgLink={require("@/assets/images/maleScientist.png")}
         text={"Analyst"}
-        onPress={() => router.navigate("/agent/joinGame")}
+        onPress={() => router.navigate("/analyst/joinGame")}
       />
     </ThemedView>
   );
