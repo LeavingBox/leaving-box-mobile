@@ -6,19 +6,20 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 
+type TimerParams = {
+  sessionCode: string;
+  maxTime: string;
+  role: string;
+};
+
 export default function TimerPage() {
   const router = useRouter();
-  const { sessionCode, maxTime, role } = useLocalSearchParams();
+  const { sessionCode, maxTime, role } = useLocalSearchParams<TimerParams>();
   const [minutes, setMinutes] = useState("0");
   const [seconds, setSeconds] = useState("0");
 
-  function formatTime(totalSeconds: number) {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  }
+  const formatTime = (totalSeconds: number) =>
+    `${Math.floor(totalSeconds / 60).toString().padStart(2, "0")}:${(totalSeconds % 60).toString().padStart(2, "0")}`;
 
   const handleTime = (time: number) => {
     const formatted = formatTime(time);
@@ -28,7 +29,7 @@ export default function TimerPage() {
   };
 
   useEffect(() => {
-    handleTime(maxTime as any);
+    handleTime(Number(maxTime) || 0);
 
     // Démarrer le timer après 1 seconde
     const timerTimeout = setTimeout(() => {
@@ -43,7 +44,7 @@ export default function TimerPage() {
       handleTime(data.remaining);
     };
 
-    const handleGameOver = async (data: any) => {
+    const handleGameOver = (data: { message: string }) => {
       Alert.alert("Fin de la partie", data.message, [
         {
           text: "MENU",
@@ -57,7 +58,7 @@ export default function TimerPage() {
       ]);
     };
 
-    const handleSessionCleared = async (res: any) => {
+    const handleSessionCleared = (res: { message?: string }) => {
       // La session se ferme automatiquement si les conditions de validation ne sont plus remplies
       const message =
         res?.message || "La session a été fermée. Le timer s'arrête.";
@@ -74,9 +75,7 @@ export default function TimerPage() {
       ]);
     };
 
-    const handleSessionClosed = async (data: any) => {
-      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
-      console.log("Session closed détecté:", data);
+    const handleSessionClosed = async () => {
       await clearSession();
       Socket.removeAllListeners();
       Socket.disconnect();
@@ -98,14 +97,13 @@ export default function TimerPage() {
   }, [sessionCode, role]);
 
   const handleBack = () => {
-    console.log("quitting session");
     Socket.emit(
       "clearSession",
       {
         sessionCode: sessionCode,
         role: role, // Indiquer le rôle de celui qui ferme la session
       },
-      (res: { success: boolean }) => {
+      (res: { success: boolean; message?: string }) => {
         if (!res.success) {
           Alert.alert(
             "Erreur",
