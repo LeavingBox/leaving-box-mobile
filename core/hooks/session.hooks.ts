@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { Socket } from "@/core/api/session.api";
+import { useEffect, useState } from "react";
 
 // hooks/session.hooks.ts/useSocketEvent
 export function useSocketEvent<T = any>(
@@ -105,7 +105,7 @@ export function useSocketQuery<T = any>(
       Socket.emit(event, requestData);
     }
 
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (options?.refetchInterval) {
       interval = setInterval(() => {
         Socket.emit(event, requestData);
