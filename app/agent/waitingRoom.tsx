@@ -15,18 +15,18 @@ import PlayerConnected from "@/components/PlayerConnected";
 import * as Clipboard from "expo-clipboard";
 import { ModuleManual } from "@/core/interface/module.interface";
 
-type OperatorSolution = {
+type AnalystSolution = {
   moduleId: string;
   solutions: string[];
 };
 
 const attachSolutionsToManuals = (
   manuals: ModuleManual[],
-  operatorSolutions: OperatorSolution[],
+  analystSolutions: AnalystSolution[],
 ): ModuleManual[] =>
   manuals.map((manual) => {
     const manualId = manual._id ?? manual.moduleId ?? manual.name;
-    const matched = operatorSolutions.find(
+    const matched = analystSolutions.find(
       (solution) =>
         solution.moduleId === manualId || solution.moduleId === manual.moduleId,
     );
@@ -66,7 +66,7 @@ export default function WaitingRoom() {
       "gameStarted",
       (data: {
         moduleManuals: ModuleManual[];
-        solutionsByAnalyst?: Record<string, OperatorSolution[]>;
+        solutionsByAnalyst?: Record<string, AnalystSolution[]>;
       }) => {
         if (role === "analyste") {
           const analystId = Socket.id ?? "";
