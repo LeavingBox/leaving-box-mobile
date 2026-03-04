@@ -9,7 +9,7 @@ export function ThemedView({
   style,
   ...otherProps
 }: ThemedViewProps) {
-  const backgroundColor = 'rgba(43, 49, 53, 1)';
+  const backgroundColor = 'rgba(43, 49, 53, 0)';
 
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }

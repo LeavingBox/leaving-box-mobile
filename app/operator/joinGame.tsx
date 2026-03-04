@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,7 +22,6 @@ export default function JoinGame() {
             player: "Operator",
           });
           Socket.on("playerJoined", () => {
-            console.log("playerJoined");
             Socket.off("playerJoined");
             router.navigate({
               pathname: "/agent/waitingRoom",
