@@ -23,18 +23,18 @@ import { ModuleManual } from "@/core/interface/module.interface";
  * - 1 seul agent par session (créateur de la session)
  * - 1 ou plusieurs opérateurs peuvent rejoindre la session
  */
-type OperatorSolution = {
+type AnalystSolution = {
   moduleId: string;
   solutions: string[];
 };
 
 const attachSolutionsToManuals = (
   manuals: ModuleManual[],
-  operatorSolutions: OperatorSolution[],
+  analystSolutions: AnalystSolution[],
 ): ModuleManual[] =>
   manuals.map((manual) => {
     const manualId = manual._id ?? manual.moduleId ?? manual.name;
-    const matched = operatorSolutions.find(
+    const matched = analystSolutions.find(
       (solution) =>
         solution.moduleId === manualId || solution.moduleId === manual.moduleId,
     );
@@ -59,7 +59,7 @@ export default function WaitingRoom() {
         role: role, // Indiquer le rôle de celui qui fait retour en arrière
       });
     }
-    if (role === "operator") {
+    if (role === "analyste") {
       Socket.disconnect();
     }
     router.back();
@@ -84,10 +84,7 @@ export default function WaitingRoom() {
       "gameStarted",
       (data: {
         moduleManuals: any[]; // Peut être des objets Mongoose avec _doc
-        solutionsByOperator?: Record<
-          string,
-          Array<{ moduleId: string; solutions: string[] }>
-        >;
+        solutionsByAnalyste?: Record<string, AnalystSolution[]>;
         session?: any;
         solutionsDistribution?: Array<{
           moduleId: string;
@@ -140,9 +137,9 @@ export default function WaitingRoom() {
         let manualsWithSolutions: ModuleManual[] = [];
 
         if (normalizedModules.length > 0) {
-          if (role === "operator" && data.solutionsByOperator && Socket.id) {
+          if (role === "analyste" && data.solutionsByAnalyste && Socket.id) {
             // Récupérer les solutions de cet opérateur
-            const mySolutions = data.solutionsByOperator[Socket.id] || [];
+            const mySolutions = data.solutionsByAnalyste[Socket.id] || [];
 
             // Fusionner les solutions avec les manuels normalisés
             manualsWithSolutions = normalizedModules.map((manual) => {
@@ -168,11 +165,11 @@ export default function WaitingRoom() {
           setModuleManuals(manualsWithSolutions);
         }
 
-        if (role === "operator") {
+        if (role === "analyste") {
           const serializedModules = JSON.stringify(manualsWithSolutions);
 
           router.navigate({
-            pathname: "/operator/manual",
+            pathname: "/analyste/manual",
             params: {
               sessionCode: sessionCode,
               maxTime: maxTime,
@@ -192,7 +189,7 @@ export default function WaitingRoom() {
   useEffect(() => {
     return () => {
       // Nettoyage lors du démontage du composant
-      if (sessionCode && role === "operator") {
+      if (sessionCode && role === "analyste") {
         Socket.emit("back", {
           sessionCode: sessionCode as string,
           role: role,

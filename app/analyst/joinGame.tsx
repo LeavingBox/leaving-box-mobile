@@ -42,8 +42,8 @@ export default function JoinGame() {
           // Rejoindre la session en tant qu'opérateur
           Socket.emit("joinSession", {
             sessionCode: code,
-            player: "Operator",
-            role: "operator", // Indiquer explicitement que c'est un opérateur
+            player: "analyste",
+            role: "analyste", // Indiquer explicitement que c'est un opérateur
           });
           Socket.on(
             "playerJoined",
@@ -58,12 +58,12 @@ export default function JoinGame() {
               const role = data.playerRole || data.role;
 
               // Vérifier que le rôle est présent et valide
-              if (!role || role !== "operator") {
+              if (!role || role !== "analyste") {
                 console.error("Erreur: Rôle invalide dans playerJoined:", role);
                 Alert.alert(
                   "Erreur serveur",
                   role
-                    ? `Rôle invalide reçu: "${role}". Attendu: "operator".`
+                    ? `Rôle invalide reçu: "${role}". Attendu: "analyste".`
                     : "Le serveur n'a pas envoyé le rôle dans playerJoined.",
                 );
                 return;
@@ -74,7 +74,7 @@ export default function JoinGame() {
                 pathname: "/agent/waitingRoom",
                 params: {
                   sessionCode: code,
-                  role: "operator",
+                  role: "analyste",
                   maxTime: data.session?.maxTime || "0",
                 },
               });
@@ -91,12 +91,12 @@ export default function JoinGame() {
     if (code) {
       Socket.emit("back", {
         sessionCode: code,
-        role: "operator", // Indiquer que c'est un opérateur qui fait retour en arrière
+        role: "analyste", // Indiquer que c'est un analyste qui fait retour en arrière
       });
     }
     Socket.off("playerJoined");
     Socket.off("currentSession");
-    Socket.emit("leaveSession", { sessionCode: code, player: "Operator" });
+    Socket.emit("leaveSession", { sessionCode: code, player: "analyste" });
     Socket.disconnect();
     router.navigate("/");
   };

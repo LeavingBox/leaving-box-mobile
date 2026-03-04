@@ -36,12 +36,21 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="agent/timerPage" options={{ headerShown: false }} />
-
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="agent/dificulty" options={{ headerShown: false }} />
+        <Stack.Screen name="agent/joinGame" options={{ headerShown: false }} />
         <Stack.Screen
-          name="operator/joinGame"
+          name="agent/waitingRoom"
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="operator/manual" options={{ headerShown: false }} />
+        <Stack.Screen name="agent/timerPage" options={{ headerShown: false }} />
+
+        <Stack.Screen
+          name="analyst/joinGame"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="analyst/manual" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

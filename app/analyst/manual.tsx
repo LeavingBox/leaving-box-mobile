@@ -33,11 +33,15 @@ export default function Manual() {
   const [selectedManual, setSelectedManual] = useState<ModuleManual | null>(
     null,
   );
-  
+
   // Parser les manuels seulement s'ils existent et sont valides
   let Manuals: ModuleManual[] = [];
   try {
-    if (moduleManuals && typeof moduleManuals === "string" && moduleManuals !== "undefined") {
+    if (
+      moduleManuals &&
+      typeof moduleManuals === "string" &&
+      moduleManuals !== "undefined"
+    ) {
       Manuals = JSON.parse(moduleManuals as string);
     }
   } catch (error) {
@@ -48,9 +52,10 @@ export default function Manual() {
   useEffect(() => {
     const handleSessionCleared = async (res: any) => {
       // La session se ferme automatiquement si les conditions de validation ne sont plus remplies
-      const message = res?.message || 
+      const message =
+        res?.message ||
         "L'agent hôte de la session a quitté. La session va être fermée.";
-      
+
       Alert.alert("Fermeture de la session", message, [
         {
           text: "OK",
@@ -59,21 +64,21 @@ export default function Manual() {
             Socket.removeAllListeners();
             Socket.disconnect();
             router.replace("/");
-          }
-        }
+          },
+        },
       ]);
     };
 
     const handleGameOver = async (data: any) => {
       Alert.alert("Fin de la partie", data.message, [
-        { 
-          text: "MENU", 
+        {
+          text: "MENU",
           onPress: async () => {
             await clearSession();
             Socket.removeAllListeners();
             Socket.disconnect();
             router.replace("/");
-          }
+          },
         },
       ]);
     };
@@ -104,19 +109,19 @@ export default function Manual() {
   };
   const handleBack = () => {
     if (sessionCode) {
-      Socket.emit("back", { 
+      Socket.emit("back", {
         sessionCode: sessionCode as string,
-        role: role // Indiquer que c'est un opérateur qui fait retour en arrière
+        role: role, // Indiquer que c'est un analyste qui fait retour en arrière
       });
     }
     // Retourner à la salle d'attente pour pouvoir rejoindre à nouveau
     // Ne pas fermer la session, juste quitter le manuel
     router.navigate({
       pathname: "/agent/waitingRoom",
-      params: { 
+      params: {
         sessionCode: sessionCode,
-        role: "operator",
-        maxTime: maxTime
+        role: "analyste",
+        maxTime: maxTime,
       },
     });
   };
@@ -164,16 +169,15 @@ export default function Manual() {
                 <ModuleInstructions manual={selectedManual} />
               ) : (
                 <Text style={styles.title}>
-                  Bomb Defusal Manual, for an Operator
+                  Bomb Defusal Manual, for an Analyst
                 </Text>
               )
             ) : (
               <View style={styles.errorContainer}>
-                <Text style={styles.title}>
-                  Manuel non disponible
-                </Text>
+                <Text style={styles.title}>Manuel non disponible</Text>
                 <Text style={styles.errorText}>
-                  Les manuels n'ont pas pu être chargés. Retournez à la salle d'attente pour les récupérer.
+                  Les manuels n'ont pas pu être chargés. Retournez à la salle
+                  d'attente pour les récupérer.
                 </Text>
               </View>
             )}
