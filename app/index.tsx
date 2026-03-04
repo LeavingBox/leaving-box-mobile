@@ -1,7 +1,7 @@
 import { Image, StyleSheet, Pressable } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import HomeAgent from "@/components/unique/HomeAgent";
-import HomeOperator from "@/components/unique/HomeOperator";
+import HomeAnalyst from "@/components/unique/HomeAnalyst";
 import { router } from "expo-router";
 
 export default function HomeScreen() {
@@ -20,7 +20,7 @@ export default function HomeScreen() {
       <Image
         resizeMode="contain"
         source={require("@/assets/images/opBG.png")}
-        style={styles.operatorBackground}
+        style={styles.analystBackground}
       />
       <Image
         source={require("@/assets/images/homeLightning.png")}
@@ -29,7 +29,7 @@ export default function HomeScreen() {
 
       <ThemedView style={styles.mainContainer}>
         <HomeAgent onPress={() => router.navigate("/agent/dificulty")} />
-        <HomeOperator onPress={() => router.navigate("/operator/joinGame")} />
+        <HomeAnalyst onPress={() => router.navigate("/analyst/joinGame")} />
       </ThemedView>
     </ThemedView>
   );
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     top: 0,
     zIndex: 1,
   },
-  operatorBackground: {
+  analystBackground: {
     position: "absolute",
     bottom: 0,
     // width: "100%",

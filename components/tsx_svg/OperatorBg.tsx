@@ -6,7 +6,7 @@ import Svg, {
   LinearGradient,
   Stop,
 } from "react-native-svg";
-const OperatorBg = (props: SvgProps) => (
+const AnalystBg = (props: SvgProps) => (
   <Svg width={395} height={673} fill="none" {...props}>
     <Path
       fill="url(#a)"
@@ -29,4 +29,4 @@ const OperatorBg = (props: SvgProps) => (
     </Defs>
   </Svg>
 );
-export default OperatorBg;
+export default AnalystBg;

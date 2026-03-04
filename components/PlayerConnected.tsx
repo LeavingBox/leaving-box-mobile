@@ -4,7 +4,7 @@ import { ThemedView } from "./ThemedView";
 export default function PlayerConnected({
   role,
 }: Readonly<{
-  role: "operator" | "agent";
+  role: "analyste" | "agent";
 }>) {
   const agent = role === "agent";
   const image = agent

@@ -15,20 +15,20 @@ import PlayerConnected from "@/components/PlayerConnected";
 import * as Clipboard from "expo-clipboard";
 import { ModuleManual } from "@/core/interface/module.interface";
 
-type OperatorSolution = {
+type AnalystSolution = {
   moduleId: string;
   solutions: string[];
 };
 
 const attachSolutionsToManuals = (
   manuals: ModuleManual[],
-  operatorSolutions: OperatorSolution[]
+  analystSolution: AnalystSolution[],
 ): ModuleManual[] =>
   manuals.map((manual) => {
     const manualId = manual._id ?? manual.moduleId ?? manual.name;
-    const matched = operatorSolutions.find(
+    const matched = analystSolution.find(
       (solution) =>
-        solution.moduleId === manualId || solution.moduleId === manual.moduleId
+        solution.moduleId === manualId || solution.moduleId === manual.moduleId,
     );
 
     return {
@@ -44,7 +44,7 @@ export default function WaitingRoom() {
   const [session, setSession] = useState<any>();
 
   const handleBack = () => {
-    if (role === "operator") {
+    if (role === "analyste") {
       Socket.disconnect();
     }
     router.back();
@@ -66,21 +66,21 @@ export default function WaitingRoom() {
       "gameStarted",
       (data: {
         moduleManuals: ModuleManual[];
-        solutionsByOperator?: Record<string, OperatorSolution[]>;
+        solutionsByAnalyst?: Record<string, AnalystSolution[]>;
       }) => {
-        if (role === "operator") {
-          const operatorId = Socket.id ?? "";
-          const mySolutions = operatorId
-            ? (data.solutionsByOperator?.[operatorId] ?? [])
+        if (role === "analyste") {
+          const analystId = Socket.id ?? "";
+          const mySolutions = analystId
+            ? (data.solutionsByAnalyst?.[analystId] ?? [])
             : [];
           const modulesForMe = attachSolutionsToManuals(
             data.moduleManuals,
-            mySolutions
+            mySolutions,
           );
           const serializedModules = JSON.stringify(modulesForMe);
 
           router.navigate({
-            pathname: "/operator/manual",
+            pathname: "/analyst/manual",
             params: {
               sessionCode: sessionCode,
               maxTime: maxTime,
@@ -89,9 +89,9 @@ export default function WaitingRoom() {
             },
           });
         } else {
-          console.log("Game started, but not operator");
+          console.log("Game started, but no analyst");
         }
-      }
+      },
     );
 
     return () => {
@@ -104,7 +104,7 @@ export default function WaitingRoom() {
     const handleSessionCleared = (res: any) => {
       Alert.alert(
         "Fermeture de la session",
-        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée."
+        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée.",
       );
       handleBack();
     };
@@ -153,7 +153,7 @@ export default function WaitingRoom() {
         />
       ) : (
         session?.connectedClients.map((client: any, key: any) => (
-          <PlayerConnected key={key} role={key === 0 ? "agent" : "operator"} />
+          <PlayerConnected key={key} role={key === 0 ? "agent" : "analyste"} />
         ))
       )}
       <View style={styles.buttonContainer}>
