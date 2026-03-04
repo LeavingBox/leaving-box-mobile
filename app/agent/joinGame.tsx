@@ -29,7 +29,7 @@ import SkeletonLoader from "@/components/agent-joinGame/SkeletonLoader";
  */
 export default function JoinGame() {
   const router = useRouter();
-  const { difficulty } = useLocalSearchParams();
+  const { difficulty, gameMode } = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session>();
   const [minutes, setMinutes] = useState("0");
@@ -37,21 +37,99 @@ export default function JoinGame() {
   const [isManualVisible, setIsManualVisible] = useState(false);
 
   useEffect(() => {
-    // Créer une nouvelle session - l'agent devient automatiquement l'agent de cette session
-    Socket.emit("createSession", { 
-      difficulty: difficulty,
-      role: "agent" // Indiquer explicitement que c'est un agent
-    });
+    // Vérifier que le socket est connecté avant d'émettre
+    if (!Socket.connected) {
+      Socket.connect();
+    }
+
+    // Timeout pour détecter si la connexion/ création prend trop de temps
+    const connectionTimeout = setTimeout(() => {
+      if (isLoading) {
+        setIsLoading(false);
+        Alert.alert(
+          "Erreur de connexion",
+          "La connexion au serveur prend trop de temps. Vérifiez que:\n" +
+          "1. Le serveur WebSocket est démarré\n" +
+          "2. L'URL est correcte dans .env (EXPO_PUBLIC_WEBSOCKET_URL)\n" +
+          "3. Votre appareil est sur le même réseau que le serveur",
+          [
+            {
+              text: "Réessayer",
+              onPress: () => {
+                setIsLoading(true);
+                Socket.connect();
+                Socket.emit("createSession", { 
+                  difficulty: difficulty,
+                  gameMode: gameMode || "ONE_OPERATOR_ONE_MODULE",
+                  role: "agent"
+                });
+              }
+            },
+            {
+              text: "Retour",
+              onPress: () => router.back(),
+              style: "cancel"
+            }
+          ]
+        );
+      }
+    }, 10000); // 10 secondes de timeout
+
+    // Gestionnaire de succès de connexion
+    const handleConnect = () => {
+      Socket.emit("createSession", { 
+        difficulty: difficulty,
+        gameMode: gameMode || "ONE_OPERATOR_ONE_MODULE",
+        role: "agent"
+      });
+    };
+
+    // Gestionnaire d'erreur de connexion
+    const handleConnectError = (err: Error) => {
+      console.error("Erreur de connexion WebSocket:", err);
+      setIsLoading(false);
+      clearTimeout(connectionTimeout);
+      Alert.alert(
+        "Erreur de connexion",
+        `Impossible de se connecter au serveur:\n${err.message}\n\nVérifiez que:\n` +
+        "1. Le serveur WebSocket est démarré\n" +
+        "2. EXPO_PUBLIC_WEBSOCKET_URL est défini dans .env\n" +
+        "3. L'URL est accessible depuis votre appareil",
+        [
+          {
+            text: "Réessayer",
+            onPress: () => {
+              setIsLoading(true);
+              Socket.connect();
+            }
+          },
+          {
+            text: "Retour",
+            onPress: () => router.back(),
+            style: "cancel"
+          }
+        ]
+      );
+    };
+
+    // Si déjà connecté, créer la session immédiatement
+    if (Socket.connected) {
+      handleConnect();
+    } else {
+      Socket.once("connect", handleConnect);
+    }
+
+    Socket.on("connect_error", handleConnectError);
+
     Socket.on("sessionCreated", (session) => {
+      clearTimeout(connectionTimeout);
       setSession(session);
       handleTime(session.maxTime);
-      console.log("sessionCreated", session);
       setIsLoading(false);
     });
 
     const handleSessionClosed = async (data: any) => {
-      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
-      console.log("Session closed détecté:", data);
+      clearTimeout(connectionTimeout);
       await clearSession();
       Socket.removeAllListeners();
       Socket.disconnect();
@@ -61,10 +139,13 @@ export default function JoinGame() {
     Socket.on("sessionClosed", handleSessionClosed);
 
     return () => {
+      clearTimeout(connectionTimeout);
+      Socket.off("connect", handleConnect);
+      Socket.off("connect_error", handleConnectError);
       Socket.off("sessionCreated");
       Socket.off("sessionClosed", handleSessionClosed);
     };
-  }, []);
+  }, [difficulty, gameMode]);
 
   function formatTime(totalSeconds: number) {
     const minutes = Math.floor(totalSeconds / 60);
@@ -82,7 +163,6 @@ export default function JoinGame() {
   };
 
   const handleBack = () => {
-    console.log("should close");
     Socket.emit(
       "clearSession",
       { 

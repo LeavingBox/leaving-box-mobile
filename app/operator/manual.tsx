@@ -79,8 +79,6 @@ export default function Manual() {
     };
 
     const handleSessionClosed = async (data: any) => {
-      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
-      console.log("Session closed détecté:", data);
       await clearSession();
       Socket.removeAllListeners();
       Socket.disconnect();

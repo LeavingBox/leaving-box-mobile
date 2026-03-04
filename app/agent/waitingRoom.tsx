@@ -58,14 +58,84 @@ export default function WaitingRoom() {
 
     Socket.on("currentSession", handleCurrentSession);
 
-    Socket.on("gameStarted", (data: { moduleManuals: ModuleManual[] }) => {
-      // Stocker les manuels pour pouvoir les réutiliser si l'opérateur revient
-      if (data.moduleManuals) {
-        setModuleManuals(data.moduleManuals);
+    Socket.on("gameStarted", (data: { 
+      moduleManuals: any[],  // Peut être des objets Mongoose avec _doc
+      solutionsByOperator?: Record<string, Array<{ moduleId: string; solutions: string[] }>>,
+      session?: any,
+      solutionsDistribution?: Array<{ 
+        moduleId: string; 
+        allocations?: Record<string, string[]>;  // Format: { operatorId: solutions[] }
+        operatorId?: string;  // Format alternatif
+        solutions?: string[];  // Format alternatif
+      }>
+    }) => {
+      // Fonction helper pour extraire les données d'un module (gère Mongoose)
+      const extractModuleData = (module: any): ModuleManual => {
+        // Si c'est un objet Mongoose, extraire depuis _doc
+        if (module?._doc) {
+          return {
+            _id: module._doc._id,
+            moduleId: module._doc._id,
+            name: module._doc.name,
+            description: module._doc.description,
+            rules: typeof module._doc.rules === 'string' 
+              ? [module._doc.rules] 
+              : (Array.isArray(module._doc.rules) ? module._doc.rules : []),
+            imgUrl: module._doc.imgUrl,
+            solutions: module.solutions || []  // Solutions fusionnées plus tard
+          };
+        }
+        // Sinon, utiliser directement
+        return {
+          _id: module._id || module.moduleId,
+          moduleId: module.moduleId || module._id,
+          name: module.name,
+          description: module.description,
+          rules: typeof module.rules === 'string' 
+            ? [module.rules] 
+            : (Array.isArray(module.rules) ? module.rules : []),
+          imgUrl: module.imgUrl,
+          solutions: module.solutions || []
+        };
+      };
+      
+      // Normaliser les modules (extraire depuis _doc si Mongoose)
+      const normalizedModules: ModuleManual[] = data.moduleManuals?.map(extractModuleData) || [];
+      
+      // Fusionner les solutions avec les manuels pour l'opérateur actuel
+      let manualsWithSolutions: ModuleManual[] = [];
+      
+      if (normalizedModules.length > 0) {
+        if (role === "operator" && data.solutionsByOperator && Socket.id) {
+          // Récupérer les solutions de cet opérateur
+          const mySolutions = data.solutionsByOperator[Socket.id] || [];
+          
+          // Fusionner les solutions avec les manuels normalisés
+          manualsWithSolutions = normalizedModules.map(manual => {
+            const manualId = String(manual._id || manual.moduleId);
+            const matchedSolutions = mySolutions.find(
+              (sol: { moduleId: string; solutions: string[] }) => 
+                String(sol.moduleId) === manualId || 
+                String(sol.moduleId) === String(manual._id) || 
+                String(sol.moduleId) === String(manual.moduleId)
+            );
+            
+            return {
+              ...manual,
+              solutions: matchedSolutions?.solutions || []
+            };
+          });
+        } else {
+          // Pour l'agent, pas de solutions
+          manualsWithSolutions = normalizedModules;
+        }
+        
+        // Stocker les manuels (avec solutions pour opérateur) pour réutilisation
+        setModuleManuals(manualsWithSolutions);
       }
       
       if (role === "operator") {
-        const serializedModules = JSON.stringify(data.moduleManuals);
+        const serializedModules = JSON.stringify(manualsWithSolutions);
 
         router.navigate({
           pathname: "/operator/manual",
@@ -76,8 +146,6 @@ export default function WaitingRoom() {
             moduleManuals: serializedModules,
           },
         });
-      } else {
-        console.log("Game started, but not operator");
       }
     });
 
@@ -123,8 +191,6 @@ export default function WaitingRoom() {
     };
 
     const handleSessionClosed = async (data: any) => {
-      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
-      console.log("Session closed détecté:", data);
       await clearSession();
       Socket.removeAllListeners();
       Socket.disconnect();
@@ -142,7 +208,7 @@ export default function WaitingRoom() {
 
   useEffect(() => {
     const handleOperatorBackNavigation = (data: any) => {
-      console.log("Un opérateur a fait retour en arrière:", data);
+      // Opérateur a fait retour en arrière
     };
 
     Socket.on("operatorBackNavigation", handleOperatorBackNavigation);

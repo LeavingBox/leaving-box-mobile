@@ -19,8 +19,6 @@ export default function JoinGame() {
 
   useEffect(() => {
     const handleSessionClosed = async (data: any) => {
-      // Événement "sessionClosed" - fin de partie, tous les joueurs retournent à la home
-      console.log("Session closed détecté:", data);
       await clearSession();
       Socket.removeAllListeners();
       Socket.disconnect();
@@ -47,12 +45,36 @@ export default function JoinGame() {
             player: "Operator",
             role: "operator", // Indiquer explicitement que c'est un opérateur
           });
-          Socket.on("playerJoined", () => {
-            console.log("playerJoined");
+          Socket.on("playerJoined", (data: { 
+            playerId?: string, 
+            playerLabel?: string, 
+            playerRole?: string,
+            role?: string,
+            session?: any
+          }) => {
+            // Le serveur envoie "playerRole" au lieu de "role"
+            const role = data.playerRole || data.role;
+            
+            // Vérifier que le rôle est présent et valide
+            if (!role || role !== "operator") {
+              console.error("Erreur: Rôle invalide dans playerJoined:", role);
+              Alert.alert(
+                "Erreur serveur",
+                role 
+                  ? `Rôle invalide reçu: "${role}". Attendu: "operator".`
+                  : "Le serveur n'a pas envoyé le rôle dans playerJoined."
+              );
+              return;
+            }
+            
             Socket.off("playerJoined");
             router.navigate({
               pathname: "/agent/waitingRoom",
-              params: { sessionCode: code, role: "operator" },
+              params: { 
+                sessionCode: code, 
+                role: "operator",
+                maxTime: data.session?.maxTime || "0"
+              },
             });
           });
         } else {
