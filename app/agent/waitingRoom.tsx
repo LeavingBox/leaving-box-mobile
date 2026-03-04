@@ -18,11 +18,33 @@ import { ModuleManual } from "@/core/interface/module.interface";
 
 /**
  * Salle d'attente pour une session de jeu
- * 
+ *
  * Règles des rôles :
  * - 1 seul agent par session (créateur de la session)
  * - 1 ou plusieurs opérateurs peuvent rejoindre la session
  */
+type OperatorSolution = {
+  moduleId: string;
+  solutions: string[];
+};
+
+const attachSolutionsToManuals = (
+  manuals: ModuleManual[],
+  operatorSolutions: OperatorSolution[],
+): ModuleManual[] =>
+  manuals.map((manual) => {
+    const manualId = manual._id ?? manual.moduleId ?? manual.name;
+    const matched = operatorSolutions.find(
+      (solution) =>
+        solution.moduleId === manualId || solution.moduleId === manual.moduleId,
+    );
+
+    return {
+      ...manual,
+      solutions: matched?.solutions ?? manual.solutions ?? [],
+    };
+  });
+
 export default function WaitingRoom() {
   const router = useRouter();
   const { sessionCode, maxTime, role } = useLocalSearchParams();
@@ -32,9 +54,9 @@ export default function WaitingRoom() {
 
   const handleBack = () => {
     if (sessionCode) {
-      Socket.emit("back", { 
+      Socket.emit("back", {
         sessionCode: sessionCode as string,
-        role: role // Indiquer le rôle de celui qui fait retour en arrière
+        role: role, // Indiquer le rôle de celui qui fait retour en arrière
       });
     }
     if (role === "operator") {
@@ -45,9 +67,9 @@ export default function WaitingRoom() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      Socket.emit("getSession", { 
+      Socket.emit("getSession", {
         sessionCode: sessionCode,
-        role: role // Indiquer le rôle pour obtenir les bonnes informations
+        role: role, // Indiquer le rôle pour obtenir les bonnes informations
       });
     }, 1000);
 
@@ -58,96 +80,109 @@ export default function WaitingRoom() {
 
     Socket.on("currentSession", handleCurrentSession);
 
-    Socket.on("gameStarted", (data: { 
-      moduleManuals: any[],  // Peut être des objets Mongoose avec _doc
-      solutionsByOperator?: Record<string, Array<{ moduleId: string; solutions: string[] }>>,
-      session?: any,
-      solutionsDistribution?: Array<{ 
-        moduleId: string; 
-        allocations?: Record<string, string[]>;  // Format: { operatorId: solutions[] }
-        operatorId?: string;  // Format alternatif
-        solutions?: string[];  // Format alternatif
-      }>
-    }) => {
-      // Fonction helper pour extraire les données d'un module (gère Mongoose)
-      const extractModuleData = (module: any): ModuleManual => {
-        // Si c'est un objet Mongoose, extraire depuis _doc
-        if (module?._doc) {
-          return {
-            _id: module._doc._id,
-            moduleId: module._doc._id,
-            name: module._doc.name,
-            description: module._doc.description,
-            rules: typeof module._doc.rules === 'string' 
-              ? [module._doc.rules] 
-              : (Array.isArray(module._doc.rules) ? module._doc.rules : []),
-            imgUrl: module._doc.imgUrl,
-            solutions: module.solutions || []  // Solutions fusionnées plus tard
-          };
-        }
-        // Sinon, utiliser directement
-        return {
-          _id: module._id || module.moduleId,
-          moduleId: module.moduleId || module._id,
-          name: module.name,
-          description: module.description,
-          rules: typeof module.rules === 'string' 
-            ? [module.rules] 
-            : (Array.isArray(module.rules) ? module.rules : []),
-          imgUrl: module.imgUrl,
-          solutions: module.solutions || []
-        };
-      };
-      
-      // Normaliser les modules (extraire depuis _doc si Mongoose)
-      const normalizedModules: ModuleManual[] = data.moduleManuals?.map(extractModuleData) || [];
-      
-      // Fusionner les solutions avec les manuels pour l'opérateur actuel
-      let manualsWithSolutions: ModuleManual[] = [];
-      
-      if (normalizedModules.length > 0) {
-        if (role === "operator" && data.solutionsByOperator && Socket.id) {
-          // Récupérer les solutions de cet opérateur
-          const mySolutions = data.solutionsByOperator[Socket.id] || [];
-          
-          // Fusionner les solutions avec les manuels normalisés
-          manualsWithSolutions = normalizedModules.map(manual => {
-            const manualId = String(manual._id || manual.moduleId);
-            const matchedSolutions = mySolutions.find(
-              (sol: { moduleId: string; solutions: string[] }) => 
-                String(sol.moduleId) === manualId || 
-                String(sol.moduleId) === String(manual._id) || 
-                String(sol.moduleId) === String(manual.moduleId)
-            );
-            
+    Socket.on(
+      "gameStarted",
+      (data: {
+        moduleManuals: any[]; // Peut être des objets Mongoose avec _doc
+        solutionsByOperator?: Record<
+          string,
+          Array<{ moduleId: string; solutions: string[] }>
+        >;
+        session?: any;
+        solutionsDistribution?: Array<{
+          moduleId: string;
+          allocations?: Record<string, string[]>; // Format: { operatorId: solutions[] }
+          operatorId?: string; // Format alternatif
+          solutions?: string[]; // Format alternatif
+        }>;
+      }) => {
+        // Fonction helper pour extraire les données d'un module (gère Mongoose)
+        const extractModuleData = (module: any): ModuleManual => {
+          // Si c'est un objet Mongoose, extraire depuis _doc
+          if (module?._doc) {
             return {
-              ...manual,
-              solutions: matchedSolutions?.solutions || []
+              _id: module._doc._id,
+              moduleId: module._doc._id,
+              name: module._doc.name,
+              description: module._doc.description,
+              rules:
+                typeof module._doc.rules === "string"
+                  ? [module._doc.rules]
+                  : Array.isArray(module._doc.rules)
+                    ? module._doc.rules
+                    : [],
+              imgUrl: module._doc.imgUrl,
+              solutions: module.solutions || [], // Solutions fusionnées plus tard
             };
-          });
-        } else {
-          // Pour l'agent, pas de solutions
-          manualsWithSolutions = normalizedModules;
-        }
-        
-        // Stocker les manuels (avec solutions pour opérateur) pour réutilisation
-        setModuleManuals(manualsWithSolutions);
-      }
-      
-      if (role === "operator") {
-        const serializedModules = JSON.stringify(manualsWithSolutions);
+          }
+          // Sinon, utiliser directement
+          return {
+            _id: module._id || module.moduleId,
+            moduleId: module.moduleId || module._id,
+            name: module.name,
+            description: module.description,
+            rules:
+              typeof module.rules === "string"
+                ? [module.rules]
+                : Array.isArray(module.rules)
+                  ? module.rules
+                  : [],
+            imgUrl: module.imgUrl,
+            solutions: module.solutions || [],
+          };
+        };
 
-        router.navigate({
-          pathname: "/operator/manual",
-          params: {
-            sessionCode: sessionCode,
-            maxTime: maxTime,
-            role: role,
-            moduleManuals: serializedModules,
-          },
-        });
-      }
-    });
+        // Normaliser les modules (extraire depuis _doc si Mongoose)
+        const normalizedModules: ModuleManual[] =
+          data.moduleManuals?.map(extractModuleData) || [];
+
+        // Fusionner les solutions avec les manuels pour l'opérateur actuel
+        let manualsWithSolutions: ModuleManual[] = [];
+
+        if (normalizedModules.length > 0) {
+          if (role === "operator" && data.solutionsByOperator && Socket.id) {
+            // Récupérer les solutions de cet opérateur
+            const mySolutions = data.solutionsByOperator[Socket.id] || [];
+
+            // Fusionner les solutions avec les manuels normalisés
+            manualsWithSolutions = normalizedModules.map((manual) => {
+              const manualId = String(manual._id || manual.moduleId);
+              const matchedSolutions = mySolutions.find(
+                (sol: { moduleId: string; solutions: string[] }) =>
+                  String(sol.moduleId) === manualId ||
+                  String(sol.moduleId) === String(manual._id) ||
+                  String(sol.moduleId) === String(manual.moduleId),
+              );
+
+              return {
+                ...manual,
+                solutions: matchedSolutions?.solutions || [],
+              };
+            });
+          } else {
+            // Pour l'agent, pas de solutions
+            manualsWithSolutions = normalizedModules;
+          }
+
+          // Stocker les manuels (avec solutions pour opérateur) pour réutilisation
+          setModuleManuals(manualsWithSolutions);
+        }
+
+        if (role === "operator") {
+          const serializedModules = JSON.stringify(manualsWithSolutions);
+
+          router.navigate({
+            pathname: "/operator/manual",
+            params: {
+              sessionCode: sessionCode,
+              maxTime: maxTime,
+              role: role,
+              moduleManuals: serializedModules,
+            },
+          });
+        }
+      },
+    );
 
     return () => {
       clearInterval(interval);
@@ -158,9 +193,9 @@ export default function WaitingRoom() {
     return () => {
       // Nettoyage lors du démontage du composant
       if (sessionCode && role === "operator") {
-        Socket.emit("back", { 
+        Socket.emit("back", {
           sessionCode: sessionCode as string,
-          role: role
+          role: role,
         });
         Socket.disconnect();
       }
@@ -172,11 +207,12 @@ export default function WaitingRoom() {
       // - L'agent quitte (plus d'agent)
       // - Tous les opérateurs quittent (plus d'opérateur)
       // - Les conditions de validation ne sont plus remplies (moins de 1 agent + 1 opérateur)
-      const message = res?.message || 
-        (role === "agent" 
+      const message =
+        res?.message ||
+        (role === "agent"
           ? "Tous les opérateurs ont quitté la session. La session va être fermée."
           : "L'agent hôte de la session a quitté. La session va être fermée.");
-      
+
       Alert.alert("Fermeture de la session", message, [
         {
           text: "OK",
@@ -185,8 +221,8 @@ export default function WaitingRoom() {
             Socket.removeAllListeners();
             Socket.disconnect();
             router.replace("/");
-          }
-        }
+          },
+        },
       ]);
     };
 
@@ -219,23 +255,27 @@ export default function WaitingRoom() {
   }, []);
 
   const handleNext = () => {
-    Socket.emit("startGame", { 
-      sessionCode: sessionCode,
-      role: role // Indiquer le rôle de celui qui démarre le jeu (devrait être "agent")
-    }, (res: any) => {
-      if (!res.success) {
-        Alert.alert("Erreur", res.message);
-      } else {
-        router.navigate({
-          pathname: "/agent/timerPage",
-          params: {
-            sessionCode: sessionCode,
-            maxTime: maxTime,
-            role: role,
-          },
-        });
-      }
-    });
+    Socket.emit(
+      "startGame",
+      {
+        sessionCode: sessionCode,
+        role: role, // Indiquer le rôle de celui qui démarre le jeu (devrait être "agent")
+      },
+      (res: any) => {
+        if (!res.success) {
+          Alert.alert("Erreur", res.message);
+        } else {
+          router.navigate({
+            pathname: "/agent/timerPage",
+            params: {
+              sessionCode: sessionCode,
+              maxTime: maxTime,
+              role: role,
+            },
+          });
+        }
+      },
+    );
   };
 
   const handleJoin = () => {
@@ -244,18 +284,18 @@ export default function WaitingRoom() {
       const serializedModules = JSON.stringify(moduleManuals);
       router.navigate({
         pathname: "/operator/manual",
-        params: { 
-          sessionCode: sessionCode, 
+        params: {
+          sessionCode: sessionCode,
           role: "operator",
           moduleManuals: serializedModules,
-          maxTime: maxTime
+          maxTime: maxTime,
         },
       });
     } else {
       // Si le jeu n'a pas encore démarré, attendre l'événement gameStarted
       Alert.alert(
         "Partie non démarrée",
-        "La partie n'a pas encore démarré. Attendez que l'agent lance la partie."
+        "La partie n'a pas encore démarré. Attendez que l'agent lance la partie.",
       );
     }
   };

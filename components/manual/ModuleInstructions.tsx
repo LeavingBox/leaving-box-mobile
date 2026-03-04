@@ -6,18 +6,26 @@ export default function ModuleInstructions({
 }: Readonly<{
   manual: ModuleManual;
 }>) {
-  console.log("manual", manual);
+  const normalizeToArray = (value?: string[] | string) => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  };
+
+  const rules = normalizeToArray(manual.rules);
+  const solutions = normalizeToArray(manual.solutions);
+
   return (
     <View>
       <Text style={styles.title}>{manual.name}</Text>
       <Text style={styles.description}>{manual.description}</Text>
-      {manual.rules && Array.isArray(manual.rules) && manual.rules.length > 0 && (
+      {manual.rules &&
+        Array.isArray(manual.rules) &&
+        manual.rules.length > 0 &&
         manual.rules.map((rule, index) => (
           <Text key={index} style={styles.rules}>
             {rule}
           </Text>
-        ))
-      )}
+        ))}
 
       <Image
         resizeMode="contain"
@@ -37,6 +45,14 @@ const styles = StyleSheet.create({
   },
   description: {
     fontStyle: "italic",
+  },
+  block: {
+    marginTop: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 6,
   },
   rules: {
     fontSize: 14,

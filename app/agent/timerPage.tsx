@@ -29,13 +29,13 @@ export default function TimerPage() {
 
   useEffect(() => {
     handleTime(maxTime as any);
-    
+
     // Démarrer le timer après 1 seconde
     const timerTimeout = setTimeout(() => {
       console.log("Starting timer");
-      Socket.emit("startTimer", { 
+      Socket.emit("startTimer", {
         sessionCode: sessionCode,
-        role: role // Indiquer le rôle de celui qui démarre le timer (devrait être "agent")
+        role: role, // Indiquer le rôle de celui qui démarre le timer (devrait être "agent")
       });
     }, 1000);
 
@@ -47,31 +47,31 @@ export default function TimerPage() {
 
     const handleGameOver = async (data: any) => {
       Alert.alert("Fin de la partie", data.message, [
-        { 
-          text: "MENU", 
+        {
+          text: "MENU",
           onPress: async () => {
             await clearSession();
             Socket.removeAllListeners();
             Socket.disconnect();
             router.replace("/");
-          }
+          },
         },
       ]);
     };
 
     const handleSessionCleared = async (res: any) => {
       // La session se ferme automatiquement si les conditions de validation ne sont plus remplies
-      const message = res?.message || 
-        "La session a été fermée. Le timer s'arrête.";
+      const message =
+        res?.message || "La session a été fermée. Le timer s'arrête.";
       Alert.alert("Session fermée", message, [
-        { 
-          text: "OK", 
+        {
+          text: "OK",
           onPress: async () => {
             await clearSession();
             Socket.removeAllListeners();
             Socket.disconnect();
             router.replace("/");
-          }
+          },
         },
       ]);
     };
@@ -103,9 +103,9 @@ export default function TimerPage() {
     console.log("quitting session");
     Socket.emit(
       "clearSession",
-      { 
+      {
         sessionCode: sessionCode,
-        role: role // Indiquer le rôle de celui qui ferme la session
+        role: role, // Indiquer le rôle de celui qui ferme la session
       },
       (res: { success: boolean }) => {
         if (!res.success) {

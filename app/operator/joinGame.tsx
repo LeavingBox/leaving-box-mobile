@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,7 +9,7 @@ import { useRouter } from "expo-router";
 
 /**
  * Page de connexion pour les opérateurs
- * 
+ *
  * Les opérateurs rejoignent une session existante créée par un agent.
  * Plusieurs opérateurs peuvent rejoindre la même session.
  */
@@ -45,50 +45,53 @@ export default function JoinGame() {
             player: "Operator",
             role: "operator", // Indiquer explicitement que c'est un opérateur
           });
-          Socket.on("playerJoined", (data: { 
-            playerId?: string, 
-            playerLabel?: string, 
-            playerRole?: string,
-            role?: string,
-            session?: any
-          }) => {
-            // Le serveur envoie "playerRole" au lieu de "role"
-            const role = data.playerRole || data.role;
-            
-            // Vérifier que le rôle est présent et valide
-            if (!role || role !== "operator") {
-              console.error("Erreur: Rôle invalide dans playerJoined:", role);
-              Alert.alert(
-                "Erreur serveur",
-                role 
-                  ? `Rôle invalide reçu: "${role}". Attendu: "operator".`
-                  : "Le serveur n'a pas envoyé le rôle dans playerJoined."
-              );
-              return;
-            }
-            
-            Socket.off("playerJoined");
-            router.navigate({
-              pathname: "/agent/waitingRoom",
-              params: { 
-                sessionCode: code, 
-                role: "operator",
-                maxTime: data.session?.maxTime || "0"
-              },
-            });
-          });
+          Socket.on(
+            "playerJoined",
+            (data: {
+              playerId?: string;
+              playerLabel?: string;
+              playerRole?: string;
+              role?: string;
+              session?: any;
+            }) => {
+              // Le serveur envoie "playerRole" au lieu de "role"
+              const role = data.playerRole || data.role;
+
+              // Vérifier que le rôle est présent et valide
+              if (!role || role !== "operator") {
+                console.error("Erreur: Rôle invalide dans playerJoined:", role);
+                Alert.alert(
+                  "Erreur serveur",
+                  role
+                    ? `Rôle invalide reçu: "${role}". Attendu: "operator".`
+                    : "Le serveur n'a pas envoyé le rôle dans playerJoined.",
+                );
+                return;
+              }
+
+              Socket.off("playerJoined");
+              router.navigate({
+                pathname: "/agent/waitingRoom",
+                params: {
+                  sessionCode: code,
+                  role: "operator",
+                  maxTime: data.session?.maxTime || "0",
+                },
+              });
+            },
+          );
         } else {
           Alert.alert("Error while joining session", response.message);
         }
-      }
+      },
     );
   };
 
   const handleBack = () => {
     if (code) {
-      Socket.emit("back", { 
+      Socket.emit("back", {
         sessionCode: code,
-        role: "operator" // Indiquer que c'est un opérateur qui fait retour en arrière
+        role: "operator", // Indiquer que c'est un opérateur qui fait retour en arrière
       });
     }
     Socket.off("playerJoined");
