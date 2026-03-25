@@ -7,40 +7,38 @@ import {
 } from "react-native";
 import { ThemedView } from "../ThemedView";
 import { RelativePathString, router } from "expo-router";
-import { useEffect } from "react";
 
 type RoleSelectorProps = {
-  navLink?: RelativePathString;
-  onPress: () => void;
-  imgLink: ImageSourcePropType;
-  text: string;
   isAgent: boolean;
 };
 
-export default function RoleSelector({
-  navLink,
-  onPress,
-  imgLink,
-  text,
-  isAgent,
-}: RoleSelectorProps) {
+export default function RoleSelector({ isAgent }: RoleSelectorProps) {
   function handleComponentClick() {
-    if (onPress) {
-      onPress();
-    } else if (navLink) {
-      router.navigate(navLink);
+    if (isAgent) {
+      router.navigate("/agent/joinGame");
+    } else {
+      router.navigate("/analyst/joinGame");
     }
   }
+  const bg = isAgent
+    ? require("@/assets/images/Red_BG.png")
+    : require("@/assets/images/Blue_BG.png");
 
+  const profil = isAgent
+    ? require("@/assets/images/agent_DA.png")
+    : require("@/assets/images/analyst_DA.png");
   return (
     <ThemedView style={styles.container}>
       <Pressable onPress={handleComponentClick} style={styles.link}>
+        <Image source={bg} style={styles.imgBG} />
         <Image
-          source={imgLink}
+          source={profil}
           style={isAgent ? styles.imageStyleAgent : styles.imageStyleAnalyste}
           resizeMode="contain"
         />
-        <Text style={styles.textStyle}>{text || "agent"}</Text>
+        <Text style={isAgent ? styles.titleAgent : styles.titleAnalyst}>
+          {isAgent ? "Agent" : "Analyst"}
+        </Text>
       </Pressable>
     </ThemedView>
   );
@@ -51,6 +49,7 @@ const styles = StyleSheet.create({
     flex: 1,
     maxHeight: "50%",
     height: "50%",
+    backgroundColor: "black",
   },
   link: {
     flex: 1,
@@ -60,6 +59,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignContent: "center",
     width: "100%",
+  },
+  imgBG: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: "0%",
   },
   imageStyleAnalyste: {
     height: "70%",
@@ -75,7 +80,14 @@ const styles = StyleSheet.create({
     bottom: "50%",
     left: "0%",
   },
-  textStyle: {
+  titleAgent: {
+    textAlign: "center",
+    fontFamily: "TrainOne",
+    fontSize: 25,
+    fontWeight: "bold",
+    color: "white",
+  },
+  titleAnalyst: {
     textAlign: "center",
     fontFamily: "TrainOne",
     fontSize: 25,
