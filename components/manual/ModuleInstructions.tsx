@@ -1,5 +1,20 @@
-import { ModuleManual } from "@/core/interface/module.interface";
+import {
+  ModuleManual,
+  SolutionWithIndex,
+} from "@/core/interface/module.interface";
 import { Image, StyleSheet, Text, View } from "react-native";
+
+const normalizeSolutions = (
+  solutions?: string[] | SolutionWithIndex[],
+): Array<{ number: number; text: string }> => {
+  if (!solutions || !Array.isArray(solutions)) return [];
+  return solutions.map((sol, i) => {
+    if (typeof sol === "object" && "index" in sol && "text" in sol) {
+      return { number: sol.index, text: sol.text };
+    }
+    return { number: i + 1, text: String(sol) };
+  });
+};
 
 export default function ModuleInstructions({
   manual,
@@ -12,38 +27,42 @@ export default function ModuleInstructions({
   };
 
   const rules = normalizeToArray(manual.rules);
-  const solutions = normalizeToArray(manual.solutions);
+  const solutions = normalizeSolutions(manual.solutions);
 
   return (
     <View>
       <Text style={styles.title}>{manual.name}</Text>
       <Text style={styles.description}>{manual.description}</Text>
-      {rules.length > 0 && (
-        <View style={styles.block}>
-          <Text style={styles.sectionTitle}>Règles</Text>
-          {rules.map((rule, index) => (
-            <Text key={index} style={styles.rules}>
-              {rule}
-            </Text>
-          ))}
-        </View>
-      )}
-      {solutions.length > 0 && (
-        <View style={styles.block}>
-          <Text style={styles.sectionTitle}>Solutions</Text>
-          {solutions.map((solution, index) => (
-            <Text key={index} style={styles.rules}>
-              {solution}
-            </Text>
-          ))}
-        </View>
+      {manual.rules &&
+        Array.isArray(manual.rules) &&
+        manual.rules.length > 0 &&
+        manual.rules.map((rule, index) => (
+          <Text key={index} style={styles.rules}>
+            {rule}
+          </Text>
+        ))}
+
+      {manual.imgUrl && (
+        <Image
+          resizeMode="contain"
+          source={{ uri: manual.imgUrl }}
+          style={styles.image}
+        />
       )}
 
-      <Image
-        resizeMode="contain"
-        source={{ uri: manual.imgUrl }}
-        style={styles.image}
-      />
+      {solutions.length > 0 && (
+        <View style={styles.solutionsSection}>
+          <Text style={styles.sectionTitle}>Solutions</Text>
+          {solutions.map((sol, i) => (
+            <View key={i} style={styles.solutionRow}>
+              <View style={styles.solutionBadge}>
+                <Text style={styles.solutionNumber}>{sol.number}</Text>
+              </View>
+              <Text style={styles.solutionText}>{sol.text}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -82,8 +101,34 @@ const styles = StyleSheet.create({
     zIndex: 100,
     width: 300,
     height: 300,
-    borderColor: "red",
-    borderWidth: 1,
     alignSelf: "center",
+    marginTop: 16,
+  },
+  solutionsSection: {
+    marginTop: 20,
+  },
+  solutionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  solutionBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#4CAF50",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  solutionNumber: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  solutionText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

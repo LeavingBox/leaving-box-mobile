@@ -1,30 +1,25 @@
 import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import { Socket } from "@/core/api/session.api";
+import { clearSession } from "@/core/service/session.service";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 
+type TimerParams = {
+  sessionCode: string;
+  maxTime: string;
+  role: string;
+};
+
 export default function TimerPage() {
   const router = useRouter();
-  const { sessionCode, maxTime, role } = useLocalSearchParams();
+  const { sessionCode, maxTime, role } = useLocalSearchParams<TimerParams>();
   const [minutes, setMinutes] = useState("0");
   const [seconds, setSeconds] = useState("0");
 
-  useEffect(() => {
-    handleTime(maxTime as any);
-    setTimeout(() => {
-      handleTimer();
-    }, 1000);
-  }, []);
-
-  function formatTime(totalSeconds: number) {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  }
+  const formatTime = (totalSeconds: number) =>
+    `${Math.floor(totalSeconds / 60).toString().padStart(2, "0")}:${(totalSeconds % 60).toString().padStart(2, "0")}`;
 
   const handleTime = (time: number) => {
     const formatted = formatTime(time);
@@ -33,27 +28,86 @@ export default function TimerPage() {
     setSeconds(seconds);
   };
 
-  const handleTimer = () => {
-    Socket.emit("startTimer", { sessionCode: sessionCode });
-    Socket.on("timerUpdate", (data: any) => {
+  useEffect(() => {
+    handleTime(Number(maxTime) || 0);
+
+    // Démarrer le timer après 1 seconde
+    const timerTimeout = setTimeout(() => {
+      Socket.emit("startTimer", {
+        sessionCode: sessionCode,
+        role: role, // Indiquer le rôle de celui qui démarre le timer (devrait être "agent")
+      });
+    }, 1000);
+
+    // Gestionnaires d'événements Socket
+    const handleTimerUpdate = (data: { remaining: number }) => {
       handleTime(data.remaining);
-    });
-    Socket.on("gameOver", (data: any) => {
-      Alert.alert("Fin de la partie", data.message,[
-        { text: "MENU", onPress: () => handleBack() },
+    };
+
+    const handleGameOver = (data: { message: string }) => {
+      Alert.alert("Fin de la partie", data.message, [
+        {
+          text: "MENU",
+          onPress: async () => {
+            await clearSession();
+            Socket.removeAllListeners();
+            Socket.disconnect();
+            router.replace("/");
+          },
+        },
       ]);
-    });
-  };
+    };
+
+    const handleSessionCleared = (res: { message?: string }) => {
+      // La session se ferme automatiquement si les conditions de validation ne sont plus remplies
+      const message =
+        res?.message || "La session a été fermée. Le timer s'arrête.";
+      Alert.alert("Session fermée", message, [
+        {
+          text: "OK",
+          onPress: async () => {
+            await clearSession();
+            Socket.removeAllListeners();
+            Socket.disconnect();
+            router.replace("/");
+          },
+        },
+      ]);
+    };
+
+    const handleSessionClosed = async () => {
+      await clearSession();
+      Socket.removeAllListeners();
+      Socket.disconnect();
+      router.replace("/");
+    };
+
+    Socket.on("timerUpdate", handleTimerUpdate);
+    Socket.on("gameOver", handleGameOver);
+    Socket.on("sessionCleared", handleSessionCleared);
+    Socket.on("sessionClosed", handleSessionClosed);
+
+    return () => {
+      clearTimeout(timerTimeout);
+      Socket.off("timerUpdate", handleTimerUpdate);
+      Socket.off("gameOver", handleGameOver);
+      Socket.off("sessionCleared", handleSessionCleared);
+      Socket.off("sessionClosed", handleSessionClosed);
+    };
+  }, [sessionCode, role]);
 
   const handleBack = () => {
     Socket.emit(
       "clearSession",
-      { sessionCode: sessionCode },
-      (res: { success: boolean }) => {
+      {
+        sessionCode: sessionCode,
+        role: role, // Indiquer le rôle de celui qui ferme la session
+      },
+      (res: { success: boolean; message?: string }) => {
         if (!res.success) {
           Alert.alert(
             "Erreur",
-            "Une erreur s'est produite lors de la fermeture de la session."
+            "Une erreur s'est produite lors de la fermeture de la session.",
           );
           return;
         }
@@ -62,14 +116,9 @@ export default function TimerPage() {
         router.navigate({
           pathname: "/agent/dificulty",
         });
-      }
+      },
     );
   };
-
-  const handleEndGame = () => {
-
-  }
-
   return (
     <ThemedView style={styles.container}>
       <View style={styles.backButton}>

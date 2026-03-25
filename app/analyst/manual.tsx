@@ -2,8 +2,14 @@ import ManualsNav from "@/components/manual/ManualsNav";
 import ModuleInstructions from "@/components/manual/ModuleInstructions";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Socket } from "@/core/api/session.api";
+import { clearSession } from "@/core/service/session.service";
 import { ModuleManual } from "@/core/interface/module.interface";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -22,62 +28,128 @@ const { width } = Dimensions.get("window");
 
 export default function Manual() {
   const router = useRouter();
+
   const { sessionCode, maxTime, role, moduleManuals } = useLocalSearchParams();
   const [selectedManual, setSelectedManual] = useState<ModuleManual | null>(
     null,
   );
-  const Manuals: ModuleManual[] = JSON.parse(moduleManuals as string);
+
+  // Parser les manuels seulement s'ils existent et sont valides
+  let Manuals: ModuleManual[] = [];
+  try {
+    if (
+      moduleManuals &&
+      typeof moduleManuals === "string" &&
+      moduleManuals !== "undefined"
+    ) {
+      Manuals = JSON.parse(moduleManuals as string);
+    }
+  } catch (error) {
+    console.error("Erreur lors du parsing des manuels:", error);
+    Manuals = [];
+  }
 
   useEffect(() => {
-    const handleSessionCleared = (res: any) => {
-      Alert.alert(
-        "Fermeture de la session",
-        "L'agent hôte de la session a quitté la salle d'attente. La session va être fermée.",
-      );
-      handleDisconnected();
+    const handleSessionCleared = async (res: any) => {
+      // La session se ferme automatiquement si les conditions de validation ne sont plus remplies
+      const message =
+        res?.message ||
+        "L'agent hôte de la session a quitté. La session va être fermée.";
+
+      Alert.alert("Fermeture de la session", message, [
+        {
+          text: "OK",
+          onPress: async () => {
+            await clearSession();
+            Socket.removeAllListeners();
+            Socket.disconnect();
+            router.replace("/");
+          },
+        },
+      ]);
+    };
+
+    const handleGameOver = async (data: any) => {
+      Alert.alert("Fin de la partie", data.message, [
+        {
+          text: "MENU",
+          onPress: async () => {
+            await clearSession();
+            Socket.removeAllListeners();
+            Socket.disconnect();
+            router.replace("/");
+          },
+        },
+      ]);
+    };
+
+    const handleSessionClosed = async (data: any) => {
+      await clearSession();
+      Socket.removeAllListeners();
+      Socket.disconnect();
+      router.replace("/");
     };
 
     Socket.on("sessionCleared", handleSessionCleared);
-    Socket.on("gameOver", (data: any) => {
-      Alert.alert("Fin de la partie", data.message, [
-        { text: "MENU", onPress: () => handleDisconnected() },
-      ]);
-    });
+    Socket.on("gameOver", handleGameOver);
+    Socket.on("sessionClosed", handleSessionClosed);
 
     return () => {
       Socket.off("sessionCleared", handleSessionCleared);
-      Socket.on("gameOver", (data: any) => {
-        Alert.alert("Fin de la partie", data.message, [
-          { text: "MENU", onPress: () => handleDisconnected() },
-        ]);
-      });
+      Socket.off("gameOver", handleGameOver);
+      Socket.off("sessionClosed", handleSessionClosed);
     };
   }, []);
 
-  const handleDisconnected = () => {
+  const handleDisconnected = async () => {
+    await clearSession();
+    Socket.removeAllListeners();
     Socket.disconnect();
+    router.replace("/");
+  };
+  const handleBack = () => {
+    if (sessionCode) {
+      Socket.emit("back", {
+        sessionCode: sessionCode as string,
+        role: role, // Indiquer que c'est un analyste qui fait retour en arrière
+      });
+    }
+    // Retourner à la salle d'attente pour pouvoir rejoindre à nouveau
+    // Ne pas fermer la session, juste quitter le manuel
     router.navigate({
-      pathname: "/analyst/joinGame",
+      pathname: "/agent/waitingRoom",
+      params: {
+        sessionCode: sessionCode,
+        role: "analyste",
+        maxTime: maxTime,
+      },
     });
   };
+
+  // Ne pas appeler handleBack automatiquement au démontage
+  // L'utilisateur doit explicitement cliquer sur retour pour rejoindre
 
   return (
     <ParallaxScrollView>
       <View style={styles.mainContainer}>
         <View style={styles.navContainer}>
           <ScrollView>
-            {Manuals.map((manual, index) => (
-              <ManualsNav
-                key={index}
-                index={index}
-                manual={manual}
-                selectedManual={selectedManual}
-                length={Manuals.length}
-                setSelectedManual={(manual: ModuleManual) => {
-                  setSelectedManual(manual);
-                }}
-              />
-            ))}
+            {Manuals.length > 0 ? (
+              Manuals.map((manual, index) => (
+                <ManualsNav
+                  key={index}
+                  index={index}
+                  manual={manual}
+                  selectedManual={selectedManual}
+                  length={Manuals.length}
+                  setSelectedManual={(manual: ModuleManual) => {
+                    setSelectedManual(manual);
+                  }}
+                />
+              ))
+            ) : (
+              <Text style={styles.errorText}>Aucun manuel disponible</Text>
+            )}
           </ScrollView>
         </View>
 
@@ -92,12 +164,22 @@ export default function Manual() {
           />
 
           <View style={styles.contentContainer}>
-            {selectedManual ? (
-              <ModuleInstructions manual={selectedManual} />
+            {Manuals.length > 0 ? (
+              selectedManual ? (
+                <ModuleInstructions manual={selectedManual} />
+              ) : (
+                <Text style={styles.title}>
+                  Bomb Defusal Manual, for an Analyst
+                </Text>
+              )
             ) : (
-              <Text style={styles.title}>
-                Bomb Defusal Manual, for an analyst
-              </Text>
+              <View style={styles.errorContainer}>
+                <Text style={styles.title}>Manuel non disponible</Text>
+                <Text style={styles.errorText}>
+                  Les manuels n'ont pas pu être chargés. Retournez à la salle
+                  d'attente pour les récupérer.
+                </Text>
+              </View>
             )}
           </View>
         </ImageBackground>
@@ -146,5 +228,16 @@ const styles = StyleSheet.create({
   contentContainer: {
     backgroundColor: "white",
     padding: 15,
+  },
+  errorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 20,
   },
 });
