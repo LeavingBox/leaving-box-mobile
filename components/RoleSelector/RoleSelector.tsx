@@ -4,6 +4,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  View,
 } from "react-native";
 import { ThemedView } from "../ThemedView";
 import { RelativePathString, router } from "expo-router";
@@ -15,7 +16,7 @@ type RoleSelectorProps = {
 export default function RoleSelector({ isAgent }: RoleSelectorProps) {
   function handleComponentClick() {
     if (isAgent) {
-      router.navigate("/agent/joinGame");
+      router.navigate("/agent/dificulty");
     } else {
       router.navigate("/analyst/joinGame");
     }
@@ -27,18 +28,22 @@ export default function RoleSelector({ isAgent }: RoleSelectorProps) {
   const profil = isAgent
     ? require("@/assets/images/agent_DA.png")
     : require("@/assets/images/analyst_DA.png");
+  const title = isAgent
+    ? require("@/assets/images/agent-title.png")
+    : require("@/assets/images/analyste-title.png");
   return (
     <ThemedView style={styles.container}>
-      <Pressable onPress={handleComponentClick} style={styles.link}>
+      <Pressable onPress={handleComponentClick} style={styles.click}>
         <Image source={bg} style={styles.imgBG} />
-        <Image
-          source={profil}
+        <View
           style={isAgent ? styles.imageStyleAgent : styles.imageStyleAnalyste}
-          resizeMode="contain"
-        />
-        <Text style={isAgent ? styles.titleAgent : styles.titleAnalyst}>
-          {isAgent ? "Agent" : "Analyst"}
-        </Text>
+        >
+          <Image source={profil} resizeMode="contain" />
+        </View>
+
+        <View style={isAgent ? styles.textAgent : styles.textAnalyst}>
+          <Image source={title} style={styles.text} resizeMode="contain" />
+        </View>
       </Pressable>
     </ThemedView>
   );
@@ -49,16 +54,37 @@ const styles = StyleSheet.create({
     flex: 1,
     maxHeight: "50%",
     height: "50%",
-    backgroundColor: "black",
   },
-  link: {
-    flex: 1,
-    flexDirection: "column",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    alignItems: "center",
-    alignContent: "center",
+  click: {
     width: "100%",
+    height: "100%",
+  },
+  textAgent: {
+    position: "absolute",
+    top: "0%",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "flex-end",
+    width: "100%",
+    height: "100%",
+    paddingRight: 30,
+  },
+  text: {
+    width: "10%",
+    zIndex: 3,
+  },
+  img: { width: "100%" },
+  textAnalyst: {
+    position: "absolute",
+    top: "0%",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "flex-start",
+    width: "100%",
+    height: "100%",
+    paddingLeft: 30,
   },
   imgBG: {
     width: "100%",
@@ -67,27 +93,22 @@ const styles = StyleSheet.create({
     top: "0%",
   },
   imageStyleAnalyste: {
-    height: "70%",
-    maxWidth: "70%",
     position: "absolute",
-    top: "32%",
-    right: "0%",
+    top: "0%",
+    width: "100%",
+    height: "100%",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
   },
   imageStyleAgent: {
-    height: "70%",
-    maxWidth: "70%",
     position: "absolute",
-    bottom: "50%",
+    bottom: "0%",
     left: "0%",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    alignContent: "flex-start",
   },
-  titleAgent: {
-    textAlign: "center",
-    fontFamily: "TrainOne",
-    fontSize: 25,
-    fontWeight: "bold",
-    color: "white",
-  },
-  titleAnalyst: {
+  title: {
     textAlign: "center",
     fontFamily: "TrainOne",
     fontSize: 25,

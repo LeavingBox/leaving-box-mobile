@@ -13,11 +13,14 @@ import {
 import { useState, useRef } from "react";
 import NavigationButton from "@/components/NavigationButton";
 import { Socket } from "@/core/api/session.api";
+import { ThemedView } from "@/components/ThemedView";
 
 export default function DifficultyScreen() {
   const router = useRouter();
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("");
-  const [selectedGameMode, setSelectedGameMode] = useState<string>("ONE_OPERATOR_ONE_MODULE");
+  const [selectedGameMode, setSelectedGameMode] = useState<string>(
+    "ONE_OPERATOR_ONE_MODULE",
+  );
   const windowWidth = Dimensions.get("window").width;
   const animatedWidth = useRef(new Animated.Value(windowWidth * 0.3)).current;
   const animatedPosition = useRef(new Animated.Value(0)).current;
@@ -29,8 +32,10 @@ export default function DifficultyScreen() {
   };
 
   const gameModeDetails: Record<string, string> = {
-    ONE_OPERATOR_ONE_MODULE: "Chaque opérateur reçoit des modules complets avec toutes leurs solutions.",
-    RANDOM_ONE_MODULE_SPLIT: "Tous les opérateurs voient tous les modules, solutions réparties en round-robin.",
+    ONE_OPERATOR_ONE_MODULE:
+      "Chaque opérateur reçoit des modules complets avec toutes leurs solutions.",
+    RANDOM_ONE_MODULE_SPLIT:
+      "Tous les opérateurs voient tous les modules, solutions réparties en round-robin.",
   };
 
   const handleDifficultySelect = (difficulty: string) => {
@@ -79,7 +84,7 @@ export default function DifficultyScreen() {
         Alert.alert(
           "Configuration manquante",
           "EXPO_PUBLIC_WEBSOCKET_URL n'est pas défini. Veuillez créer un fichier .env avec cette variable.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
         return;
       }
@@ -89,7 +94,7 @@ export default function DifficultyScreen() {
         Socket.connect();
         router.navigate({
           pathname: "/agent/joinGame",
-          params: { 
+          params: {
             difficulty: selectedDifficulty,
             gameMode: selectedGameMode,
           },
@@ -99,89 +104,54 @@ export default function DifficultyScreen() {
         Alert.alert(
           "Erreur de connexion",
           "Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et que l'URL est correcte.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       }
     }
   };
 
   return (
-    <ParallaxScrollView>
+    <ThemedView style={styles.mainContainer}>
+      <View style={styles.background}>
+        <Image
+          source={require("@/assets/images/Red_grid_bg.png")}
+          style={styles.backgroundImage}
+        />
+      </View>
       <View>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("@/assets/images/bomb-logo.png")}
-            style={[styles.image, { width: 100, height: 100 }]}
-          />
-          <Image
-            source={require("@/assets/images/leavingbox.png")}
-            style={styles.image}
-          />
-        </View>
-
         <View style={styles.difficultyContainer}>
-          <Animated.View
-            style={[
-              styles.difficultyButton,
-              styles.easyButton,
-              selectedDifficulty === "Easy" && { width: animatedWidth },
-              {
-                display:
-                  selectedDifficulty && selectedDifficulty !== "Easy"
-                    ? "none"
-                    : "flex",
-              },
-            ]}
+          <TouchableOpacity
+            onPress={() => handleDifficultySelect("Easy")}
+            style={styles.buttonContent}
           >
-            <TouchableOpacity
-              onPress={() => handleDifficultySelect("Easy")}
-              style={styles.buttonContent}
-            >
-              <Text style={styles.difficultyText}>Facile</Text>
-            </TouchableOpacity>
-          </Animated.View>
+            <Image
+              source={require("@/assets/images/Bombe_Facile.png")}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
 
-          <Animated.View
-            style={[
-              styles.difficultyButton,
-              styles.mediumButton,
-              selectedDifficulty === "Medium" && { width: animatedWidth },
-              {
-                display:
-                  selectedDifficulty && selectedDifficulty !== "Medium"
-                    ? "none"
-                    : "flex",
-              },
-            ]}
+          <TouchableOpacity
+            onPress={() => handleDifficultySelect("Medium")}
+            style={styles.buttonContent}
           >
-            <TouchableOpacity
-              onPress={() => handleDifficultySelect("Medium")}
-              style={styles.buttonContent}
-            >
-              <Text style={styles.difficultyText}>Médium</Text>
-            </TouchableOpacity>
-          </Animated.View>
+            <Image
+              source={require("@/assets/images/Bombe_Moyen.png")}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
 
-          <Animated.View
-            style={[
-              styles.difficultyButton,
-              styles.hardButton,
-              selectedDifficulty === "Hard" && { width: animatedWidth },
-              {
-                display:
-                  selectedDifficulty && selectedDifficulty !== "Hard"
-                    ? "none"
-                    : "flex",
-              },
-            ]}
+          <TouchableOpacity
+            onPress={() => handleDifficultySelect("Hard")}
+            style={styles.buttonContent}
           >
-            <TouchableOpacity
-              onPress={() => handleDifficultySelect("Hard")}
-              style={styles.buttonContent}
-            >
-              <Text style={styles.difficultyText}>Hard</Text>
-            </TouchableOpacity>
-          </Animated.View>
+            <Image
+              source={require("@/assets/images/Bombe_Difficile.png")}
+              style={styles.buttonImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
         </View>
 
         {selectedDifficulty && (
@@ -199,14 +169,16 @@ export default function DifficultyScreen() {
               <TouchableOpacity
                 style={[
                   styles.gameModeButton,
-                  selectedGameMode === "ONE_OPERATOR_ONE_MODULE" && styles.gameModeButtonSelected,
+                  selectedGameMode === "ONE_OPERATOR_ONE_MODULE" &&
+                    styles.gameModeButtonSelected,
                 ]}
                 onPress={() => setSelectedGameMode("ONE_OPERATOR_ONE_MODULE")}
               >
                 <Text
                   style={[
                     styles.gameModeText,
-                    selectedGameMode === "ONE_OPERATOR_ONE_MODULE" && styles.gameModeTextSelected,
+                    selectedGameMode === "ONE_OPERATOR_ONE_MODULE" &&
+                      styles.gameModeTextSelected,
                   ]}
                 >
                   Standard
@@ -215,14 +187,16 @@ export default function DifficultyScreen() {
               <TouchableOpacity
                 style={[
                   styles.gameModeButton,
-                  selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" && styles.gameModeButtonSelected,
+                  selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" &&
+                    styles.gameModeButtonSelected,
                 ]}
                 onPress={() => setSelectedGameMode("RANDOM_ONE_MODULE_SPLIT")}
               >
                 <Text
                   style={[
                     styles.gameModeText,
-                    selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" && styles.gameModeTextSelected,
+                    selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" &&
+                      styles.gameModeTextSelected,
                   ]}
                 >
                   Split
@@ -251,17 +225,34 @@ export default function DifficultyScreen() {
           )}
         </View>
       </View>
-    </ParallaxScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    marginTop: "0%",
+    marginBottom: "0%",
+    flex: 1,
+    height: "100%",
+    width: "100%",
+    flexDirection: "column",
+    backgroundColor: "white",
+    alignContent: "center",
+    justifyContent: "center",
+  },
   logoContainer: {
     marginTop: 100,
     alignItems: "center",
     marginBottom: 50,
   },
-
+  background: {
+    position: "absolute",
+    top: "0%",
+    width: "100%",
+    height: "100%",
+  },
+  backgroundImage: { width: "100%", height: "100%" },
   image: {
     alignSelf: "center",
     width: 200,
@@ -271,30 +262,20 @@ const styles = StyleSheet.create({
 
   difficultyContainer: {
     flexDirection: "row",
-    height: 80,
     width: "100%",
     alignSelf: "center",
-    justifyContent: "center",
+    justifyContent: "space-around",
     alignItems: "center",
-  },
-
-  difficultyButton: {
-    height: 80,
-    width: "30%",
-    justifyContent: "center",
-    alignItems: "center",
-    transform: [{ skewX: "-10deg" }],
-    overflow: "hidden",
-    borderWidth: 1,
-    borderStyle: "solid",
+    maxHeight: "40%",
   },
 
   buttonContent: {
-    width: "100%",
+    width: "30%",
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
+  buttonImage: { width: "100%", zIndex: 4 },
 
   easyButton: {
     backgroundColor: "#4CAF50",

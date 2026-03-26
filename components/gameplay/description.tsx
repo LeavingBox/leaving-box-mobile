@@ -5,10 +5,13 @@ export default function Description() {
     <View style={{ marginTop: 20 }}>
       <Text style={styles.title}>Désarmorcer des bombes</Text>
       <Text style={styles.description}>
-        Une bombe explose lorsque son compte à rebours atteint 0:00 ou lorsque trop d'erreurs ont été commises.
+        Une bombe explose lorsque son compte à rebours atteint 0:00 ou lorsque
+        trop d'erreurs ont été commises.
       </Text>
       <Text style={styles.description}>
-        Le seul moyen de désamorcer une bombe avant qu'elle n'explose est de désarmer chaque module séparément avant que le compte à rebours ne se termine.
+        Le seul moyen de désamorcer une bombe avant qu'elle n'explose est de
+        désarmer chaque module séparément avant que le compte à rebours ne se
+        termine.
       </Text>
     </View>
   );

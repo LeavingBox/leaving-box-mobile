@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TextInput,
+  Image,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -18,12 +19,15 @@ import NavigationButton from "@/components/NavigationButton";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import CodeGame from "@/components/CodeGame";
 import SkeletonLoader from "@/components/agent-joinGame/SkeletonLoader";
+import { ThemedView } from "@/components/ThemedView";
 
 const CONNECTION_ERROR_MSG =
   "Vérifiez que le serveur est démarré, EXPO_PUBLIC_WEBSOCKET_URL est défini, et que vous êtes sur le même réseau.";
 
 const formatTime = (s: number) =>
-  `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+  `${Math.floor(s / 60)
+    .toString()
+    .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
 export default function JoinGame() {
   const router = useRouter();
@@ -41,7 +45,11 @@ export default function JoinGame() {
   const showConnectionError = (title: string, onRetry?: () => void) => {
     Alert.alert(title, CONNECTION_ERROR_MSG, [
       ...(onRetry ? [{ text: "Réessayer", onPress: onRetry }] : []),
-      { text: "Retour", onPress: () => router.back(), style: "cancel" as const },
+      {
+        text: "Retour",
+        onPress: () => router.back(),
+        style: "cancel" as const,
+      },
     ]);
   };
 
@@ -95,20 +103,28 @@ export default function JoinGame() {
   }, [difficulty, gameMode]);
 
   const handleBack = () => {
-    Socket.emit("clearSession", { sessionCode: session?.code, role: "agent" }, (res: { success: boolean }) => {
-      if (res.success) {
-        Socket.removeAllListeners();
-        Socket.disconnect();
-        router.replace("/agent/dificulty");
-      } else Alert.alert("Erreur", "Impossible de fermer la session.");
-    });
+    Socket.emit(
+      "clearSession",
+      { sessionCode: session?.code, role: "agent" },
+      (res: { success: boolean }) => {
+        if (res.success) {
+          Socket.removeAllListeners();
+          Socket.disconnect();
+          router.replace("/agent/dificulty");
+        } else Alert.alert("Erreur", "Impossible de fermer la session.");
+      },
+    );
   };
 
   const handleNext = () => {
     if (session) {
       router.navigate({
         pathname: "/agent/waitingRoom",
-        params: { sessionCode: session.code, maxTime: String(session.maxTime), role: "agent" },
+        params: {
+          sessionCode: session.code,
+          maxTime: String(session.maxTime),
+          role: "agent",
+        },
       });
     }
   };
@@ -136,31 +152,85 @@ export default function JoinGame() {
   }
 
   return (
-    <ParallaxScrollView>
+    <ThemedView style={styles.mainContainer}>
+      <View style={styles.background}>
+        <Image
+          source={require("@/assets/images/Red_grid_bg.png")}
+          style={styles.backgroundImage}
+        />
+      </View>
       <View style={styles.container}>
         <CodeGame code={session?.code} />
         <Description />
-        <CustomButton onPress={() => setIsManualVisible(true)} buttonText="Ouvrir le manuel" />
-        <ManualScreen isVisible={isManualVisible} onClose={() => setIsManualVisible(false)} />
+        <CustomButton
+          onPress={() => setIsManualVisible(true)}
+          buttonText="Ouvrir le manuel"
+        />
+        <ManualScreen
+          isVisible={isManualVisible}
+          onClose={() => setIsManualVisible(false)}
+        />
 
         <View style={styles.codeContainer}>
-          <TextInput style={styles.codeInput} value={m1} maxLength={1} editable={false} />
-          <TextInput style={styles.codeInput} value={m2} maxLength={1} editable={false} />
+          <TextInput
+            style={styles.codeInput}
+            value={m1}
+            maxLength={1}
+            editable={false}
+          />
+          <TextInput
+            style={styles.codeInput}
+            value={m2}
+            maxLength={1}
+            editable={false}
+          />
           <Text style={styles.separator}>:</Text>
-          <TextInput style={styles.codeInput} value={s1} maxLength={1} editable={false} />
-          <TextInput style={styles.codeInput} value={s2} maxLength={1} editable={false} />
+          <TextInput
+            style={styles.codeInput}
+            value={s1}
+            maxLength={1}
+            editable={false}
+          />
+          <TextInput
+            style={styles.codeInput}
+            value={s2}
+            maxLength={1}
+            editable={false}
+          />
         </View>
 
         <View style={styles.navigationContainer}>
           <NavigationButton onPress={handleBack} color="red" label="Retour" />
-          <NavigationButton onPress={handleNext} color="red" label="Voir la salle d'attente" />
+          <NavigationButton
+            onPress={handleNext}
+            color="red"
+            label="Voir la salle d'attente"
+          />
         </View>
       </View>
-    </ParallaxScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    marginTop: "0%",
+    marginBottom: "0%",
+    flex: 1,
+    height: "100%",
+    width: "100%",
+    flexDirection: "column",
+    backgroundColor: "white",
+    alignContent: "center",
+    justifyContent: "center",
+  },
+  background: {
+    position: "absolute",
+    top: "0%",
+    width: "100%",
+    height: "100%",
+  },
+  backgroundImage: { width: "100%", height: "100%" },
   container: {
     flex: 1,
     padding: 20,
@@ -194,6 +264,11 @@ const skeletonStyles = StyleSheet.create({
   text: { width: 170, height: 80, borderRadius: 10 },
   textContainer: { marginVertical: 20 },
   title: { alignSelf: "center", width: 100, height: 40, marginVertical: 10 },
-  description: { width: 350, height: "30%", marginBottom: 20, paddingHorizontal: 15 },
+  description: {
+    width: 350,
+    height: "30%",
+    marginBottom: 20,
+    paddingHorizontal: 15,
+  },
   codeInput: { width: 40, height: 40, marginHorizontal: 5, borderRadius: 5 },
 });

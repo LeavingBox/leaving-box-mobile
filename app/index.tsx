@@ -20,5 +20,6 @@ const styles = StyleSheet.create({
     height: "100%",
     flexDirection: "column",
     backgroundColor: "white",
+    gap: 20,
   },
 });
