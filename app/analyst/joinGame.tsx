@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,6 +16,32 @@ import { useRouter } from "expo-router";
 export default function JoinGame() {
   const router = useRouter();
   const [code, setCode] = useState("");
+  const lastJoinErrorRef = useRef<{ message: string; at: number } | null>(null);
+  const isJoinErrorVisibleRef = useRef(false);
+  const showJoinError = (message?: string) => {
+    if (isJoinErrorVisibleRef.current) return;
+    const finalMessage = message ?? "Connexion refusée";
+    const now = Date.now();
+    const last = lastJoinErrorRef.current;
+    if (last && last.message === finalMessage && now - last.at < 1000) return;
+    lastJoinErrorRef.current = { message: finalMessage, at: now };
+    isJoinErrorVisibleRef.current = true;
+    Alert.alert(
+      "Connexion refusée",
+      finalMessage,
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            isJoinErrorVisibleRef.current = false;
+          },
+        },
+      ],
+      {
+        cancelable: true,
+      },
+    );
+  };
 
   useEffect(() => {
     const handleSessionClosed = async (data: any) => {
@@ -24,11 +50,21 @@ export default function JoinGame() {
       Socket.disconnect();
       router.replace("/");
     };
+    const handleJoinSessionRejected = (payload?: { message?: string }) => {
+      showJoinError(payload?.message);
+    };
+    const handleSessionFull = (payload?: { message?: string }) => {
+      showJoinError(payload?.message);
+    };
 
     Socket.on("sessionClosed", handleSessionClosed);
+    Socket.on("joinSessionRejected", handleJoinSessionRejected);
+    Socket.on("sessionFull", handleSessionFull);
 
     return () => {
       Socket.off("sessionClosed", handleSessionClosed);
+      Socket.off("joinSessionRejected", handleJoinSessionRejected);
+      Socket.off("sessionFull", handleSessionFull);
     };
   }, []);
 
@@ -40,11 +76,26 @@ export default function JoinGame() {
       (response: { success: boolean; message?: string }) => {
         if (response.success) {
           Socket.off("playerJoined");
-          Socket.emit("joinSession", {
-            sessionCode: code,
-            player: "analyste",
-            role: "analyste",
-          });
+          Socket.emit(
+            "joinSession",
+            {
+              sessionCode: code,
+              player: "analyste",
+              role: "analyste",
+            },
+            (joinResponse?: {
+              success?: boolean;
+              message?: string;
+              alert?: { message?: string };
+            }) => {
+              if (joinResponse?.success !== false) return;
+              const message =
+                joinResponse.alert?.message ??
+                joinResponse.message ??
+                "Connexion refusée";
+              showJoinError(message);
+            },
+          );
           Socket.once(
             "playerJoined",
             (data: {
