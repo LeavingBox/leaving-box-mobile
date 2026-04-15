@@ -90,6 +90,28 @@ export default function Manual() {
       ]);
     };
 
+    const handleExtraHintAlert = (data: {
+      moduleId: string;
+      moduleNumber: number;
+      message?: string;
+    }) => {
+      const targetManual = Manuals.find(
+        (manual) => String(manual._id ?? manual.moduleId) === String(data.moduleId),
+      );
+      Alert.alert(
+        "Nouvel indice débloqué",
+        data.message ?? `Un indice supplémentaire est disponible pour le module ${data.moduleNumber}.`,
+        [
+          targetManual
+            ? {
+                text: "Voir l'indice",
+                onPress: () => setSelectedManual(targetManual),
+              }
+            : { text: "OK" },
+        ],
+      );
+    };
+
     const handleSessionClosed = async (data: any) => {
       await clearSession();
       Socket.removeAllListeners();
@@ -99,11 +121,13 @@ export default function Manual() {
 
     Socket.on("sessionCleared", handleSessionCleared);
     Socket.on("gameOver", handleGameOver);
+    Socket.on("extraHintAlert", handleExtraHintAlert);
     Socket.on("sessionClosed", handleSessionClosed);
 
     return () => {
       Socket.off("sessionCleared", handleSessionCleared);
       Socket.off("gameOver", handleGameOver);
+      Socket.off("extraHintAlert", handleExtraHintAlert);
       Socket.off("sessionClosed", handleSessionClosed);
     };
   }, []);
