@@ -166,10 +166,7 @@ export default function TimerPage() {
       setMaxHintsForDifficulty(data.maxHintsForDifficulty);
       setLastHintCostSeconds(data.timeCostSeconds);
       handleTime(data.remainingTime);
-      Alert.alert(
-        "Indice débloqué",
-        `Indice module ${data.moduleNumber} débloqué (-${data.timeCostSeconds}s)`,
-      );
+      Alert.alert("Indice débloqué", `Coût: -${data.timeCostSeconds}s`);
       loadExtraHintContext();
     };
 
@@ -358,7 +355,9 @@ export default function TimerPage() {
                     </ScrollView>
                   </>
                 ) : (
-                  <Text style={styles.modalText}>Plus d'indices disponibles</Text>
+                  <Text style={styles.modalText}>
+                    Plus d'indices disponibles
+                  </Text>
                 )}
                 <View style={styles.modalButtons}>
                   <NavigationButton
