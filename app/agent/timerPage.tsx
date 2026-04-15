@@ -19,7 +19,9 @@ export default function TimerPage() {
   const [seconds, setSeconds] = useState("0");
 
   const formatTime = (totalSeconds: number) =>
-    `${Math.floor(totalSeconds / 60).toString().padStart(2, "0")}:${(totalSeconds % 60).toString().padStart(2, "0")}`;
+    `${Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, "0")}:${(totalSeconds % 60).toString().padStart(2, "0")}`;
 
   const handleTime = (time: number) => {
     const formatted = formatTime(time);
@@ -44,8 +46,17 @@ export default function TimerPage() {
       handleTime(data.remaining);
     };
 
-    const handleGameOver = (data: { message: string }) => {
-      Alert.alert("Fin de la partie", data.message, [
+    const handleGameOver = (data: {
+      message: string;
+      gameResult: "Win" | "Lose";
+    }) => {
+      const isWin = data.gameResult === "Win";
+      const title = isWin ? "Victoire" : "Défaite";
+      const message = data.gameResult
+        ? `${data.message}\n${title}`
+        : data.message;
+
+      Alert.alert(title, message, [
         {
           text: "MENU",
           onPress: async () => {

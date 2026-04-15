@@ -69,8 +69,15 @@ export default function Manual() {
       ]);
     };
 
-    const handleGameOver = async (data: any) => {
-      Alert.alert("Fin de la partie", data.message, [
+    const handleGameOver = async (data: {
+      message: string;
+      gameResult?: "Win" | "Lose";
+    }) => {
+      const isWin = data.gameResult === "Win";
+      const title = isWin ? "Victoire" : "Défaite";
+      const message = data.gameResult ? `${data.message}\n${title}` : data.message;
+
+      Alert.alert(title, message, [
         {
           text: "MENU",
           onPress: async () => {
