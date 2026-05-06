@@ -22,20 +22,26 @@ import {
   GameStartedData,
 } from "@/core/interface/solution.interface";
 
+const toStringArray = (v: unknown): string[] => {
+  if (!v) return [];
+  if (typeof v === "string") return [v];
+  if (Array.isArray(v)) return v.map(String);
+  return [];
+};
+
 const toModuleManual = (raw: Record<string, unknown>): ModuleManual => {
   const src = (raw._doc ?? raw) as Record<string, unknown>;
-  const rules = src.rules;
+  const desc = src.description;
   return {
     _id: (src._id ?? src.moduleId) as string | undefined,
     moduleId: (src.moduleId ?? src._id) as string | undefined,
     name: String(src.name ?? ""),
-    description: String(src.description ?? ""),
-    rules:
-      typeof rules === "string"
-        ? [rules]
-        : Array.isArray(rules)
-          ? (rules as string[])
-          : [],
+    title: src.title as string | undefined,
+    Objectif: src.Objectif as string | undefined,
+    description: Array.isArray(desc) ? (desc as string[]) : String(desc ?? ""),
+    rules: toStringArray(src.rules),
+    gameRules: toStringArray(src.gameRules),
+    hints: toStringArray(src.hints),
     imgUrl: src.imgUrl as string | undefined,
     solutions: (src.solutions as ModuleManual["solutions"]) ?? [],
   };
@@ -64,7 +70,7 @@ export default function WaitingRoom() {
   useEffect(() => {
     const interval = setInterval(
       () => Socket.emit("getSession", { sessionCode, role }),
-      1000,
+      1000
     );
 
     const handleCurrentSession = (data: Session) => {
@@ -75,7 +81,7 @@ export default function WaitingRoom() {
     const handleGameStarted = (data: GameStartedData) => {
       const modules =
         data.moduleManuals?.map((m) =>
-          toModuleManual(m as Record<string, unknown>),
+          toModuleManual(m as Record<string, unknown>)
         ) ?? [];
       if (modules.length === 0) {
         setModuleManuals([]);
@@ -83,7 +89,7 @@ export default function WaitingRoom() {
           Alert.alert(
             "Erreur",
             "Aucun module reçu. La partie n'a pas pu démarrer correctement.",
-            [{ text: "OK" }],
+            [{ text: "OK" }]
           );
         }
         return;
@@ -92,7 +98,7 @@ export default function WaitingRoom() {
       const socketId = Socket.id;
       if (role === "analyste" && !socketId && data.solutionsByAnalyste) {
         console.warn(
-          "[WaitingRoom] Socket.id indéfini : solutions par analyste non appliquées.",
+          "[WaitingRoom] Socket.id indéfini : solutions par analyste non appliquées."
         );
       }
       const mySolutions = socketId
@@ -103,7 +109,7 @@ export default function WaitingRoom() {
           ? modules.map((manual) => {
               const match = mySolutions.find(
                 (s: AnalystSolution) =>
-                  String(s.moduleId) === String(manual._id ?? manual.moduleId),
+                  String(s.moduleId) === String(manual._id ?? manual.moduleId)
               );
               return { ...manual, solutions: match?.solutions ?? [] };
             })
@@ -172,7 +178,7 @@ export default function WaitingRoom() {
             params: { sessionCode, maxTime, role },
           });
         } else Alert.alert("Erreur", res.message);
-      },
+      }
     );
   };
 
@@ -190,7 +196,7 @@ export default function WaitingRoom() {
     } else {
       Alert.alert(
         "Partie non démarrée",
-        "Attendez que l'agent lance la partie.",
+        "Attendez que l'agent lance la partie."
       );
     }
   };
