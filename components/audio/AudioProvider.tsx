@@ -9,7 +9,6 @@ export const AudioProvider = ({ children }: PropsWithChildren) => {
 
   const currentTrack = useRef<string | null>(null);
   const bgMusic = useRef<Audio.Sound | null>(null);
-  //const volume = useRef(1)
   const [volume, setVolume] = useState(1);
 
   const playMusic = async (name: MusicName) => {
@@ -19,10 +18,7 @@ export const AudioProvider = ({ children }: PropsWithChildren) => {
       currentTrack.current = name;
 
       // stop ancienne musique
-      if (bgMusic.current) {
-        await bgMusic.current.stopAsync();
-        await bgMusic.current.unloadAsync();
-      }
+      await stopMusic();
 
       const sound = new Audio.Sound();
       await sound.loadAsync(musicMap[name]);

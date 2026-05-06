@@ -14,7 +14,7 @@ export default function AudioMenu() {
 
   return (
     <ThemedView style={styles.container}>
-      <Text style={styles.title}>Volume</Text>
+      <Text style={styles.title}>Volume de la musique</Text>
 
       <Slider
         style={{ width: "80%" }}

@@ -2,6 +2,7 @@ import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import { Socket } from "@/core/api/session.api";
 import { clearSession } from "@/core/service/session.service";
+import { useAudio } from "@/hooks/useAudio";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
@@ -14,6 +15,7 @@ type TimerParams = {
 
 export default function TimerPage() {
   const router = useRouter();
+  const { stopMusic } = useAudio();
   const { sessionCode, maxTime, role } = useLocalSearchParams<TimerParams>();
   const [minutes, setMinutes] = useState("0");
   const [seconds, setSeconds] = useState("0");
@@ -31,6 +33,8 @@ export default function TimerPage() {
   };
 
   useEffect(() => {
+    stopMusic();
+
     handleTime(Number(maxTime) || 0);
 
     // Démarrer le timer après 1 seconde
