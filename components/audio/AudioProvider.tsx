@@ -5,6 +5,7 @@ import { MusicName, AudioContext } from '@/hooks/useAudio';
 export const AudioProvider = ({ children }: PropsWithChildren) => {
   const musicMap = {
     menu: require('../../assets/music/menu_theme.mp3'),
+    credits: require('../../assets/music/credits_song.mp3'),
   };
 
   const currentTrack = useRef<string | null>(null);
@@ -13,12 +14,19 @@ export const AudioProvider = ({ children }: PropsWithChildren) => {
 
   const playMusic = async (name: MusicName) => {
     try {
-      if (currentTrack.current === name) return;
+      if (currentTrack.current === name && bgMusic.current) return;
+
+      if (bgMusic.current) {
+        try {
+          await bgMusic.current.stopAsync();
+          await bgMusic.current.unloadAsync();
+        } catch (e) {
+          console.log("Error stopping previous music", e);
+        }
+        bgMusic.current = null;
+      }
 
       currentTrack.current = name;
-
-      // stop ancienne musique
-      await stopMusic();
 
       const sound = new Audio.Sound();
       await sound.loadAsync(musicMap[name]);
@@ -35,9 +43,15 @@ export const AudioProvider = ({ children }: PropsWithChildren) => {
 
   const stopMusic = async () => {
     if (bgMusic.current) {
-      await bgMusic.current.stopAsync();
-      await bgMusic.current.unloadAsync();
+      try {
+          await bgMusic.current.stopAsync();
+          await bgMusic.current.unloadAsync();
+        } catch (e) {
+          console.log("Error stopping previous music", e);
+        }
+
       bgMusic.current = null;
+      currentTrack.current = null;
     }
   };
 

@@ -34,6 +34,7 @@ export default function RootLayout() {
           <Stack.Screen name="agent/dificulty" options={{ headerShown: false }} />
           <Stack.Screen name="agent/joinGame" options={{ headerShown: false }} />
           <Stack.Screen name="audio/audioMenu" options={{ headerShown: false }} />
+          <Stack.Screen name="creditsScreen" options={{ headerShown: false }} />
           <Stack.Screen
             name="agent/waitingRoom"
             options={{ headerShown: false }}

@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-export type MusicName = 'menu';
+export type MusicName = 'menu' | 'credits';
 
 export type AudioContextType = {
   playMusic: (name: MusicName) => Promise<void>;
