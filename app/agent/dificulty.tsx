@@ -33,9 +33,9 @@ export default function DifficultyScreen() {
 
   const gameModeDetails: Record<string, string> = {
     ONE_OPERATOR_ONE_MODULE:
-      "Chaque opérateur reçoit des modules complets avec toutes leurs solutions.",
+      "Standard: Chaque opérateur a accès à l'ensemble de la solutions de tout les modules.",
     RANDOM_ONE_MODULE_SPLIT:
-      "Tous les opérateurs voient tous les modules, solutions réparties en round-robin.",
+      "Split: Chaque opérateur a accès à une partie différente des solutions de chaques modules .",
   };
 
   const handleDifficultySelect = (difficulty: string) => {
@@ -109,7 +109,7 @@ export default function DifficultyScreen() {
       }
     }
   };
-
+  const titleText = "Difficulté: " + selectedDifficulty;
   return (
     <ThemedView style={styles.mainContainer}>
       <View style={styles.background}>
@@ -118,8 +118,11 @@ export default function DifficultyScreen() {
           style={styles.backgroundImage}
         />
       </View>
-      <View>
-        <View style={styles.difficultyContainer}>
+      <Text style={styles.title}>
+        {!selectedDifficulty ? "Difficulté" : titleText}
+      </Text>
+      <View style={styles.difficultyContainer}>
+        <View style={styles.difficultyButtonContainer}>
           <TouchableOpacity
             onPress={() => handleDifficultySelect("Easy")}
             style={styles.buttonContent}
@@ -148,82 +151,81 @@ export default function DifficultyScreen() {
           >
             <Image
               source={require("@/assets/images/Bombe_Difficile.png")}
-              style={styles.buttonImage}
+              style={[styles.buttonImage]}
               resizeMode="contain"
             />
           </TouchableOpacity>
         </View>
+        <View style={styles.detailsContainer}>
+          <Text style={styles.detailsText}>
+            {!selectedDifficulty
+              ? "Cliquez sur une des bombes pour choisir"
+              : difficultyDetails[selectedDifficulty]}
+          </Text>
+        </View>
+      </View>
 
-        {selectedDifficulty && (
-          <View style={styles.detailsContainer}>
-            <Text style={styles.detailsText}>
-              {difficultyDetails[selectedDifficulty]}
+      <View style={styles.gameModeContainer}>
+        <Text style={styles.gameModeTitle}>Mode de jeu</Text>
+        <View style={styles.gameModeButtons}>
+          <TouchableOpacity
+            style={[
+              styles.gameModeButton,
+              selectedGameMode != "ONE_OPERATOR_ONE_MODULE" &&
+                styles.gameModeButtonSelected,
+            ]}
+            disabled={selectedGameMode === "ONE_OPERATOR_ONE_MODULE"}
+            onPress={() => setSelectedGameMode("ONE_OPERATOR_ONE_MODULE")}
+          >
+            <Text
+              style={[
+                styles.gameModeText,
+                selectedGameMode != "ONE_OPERATOR_ONE_MODULE" &&
+                  styles.gameModeTextSelected,
+              ]}
+            >
+              Standard
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.gameModeButton,
+              selectedGameMode != "RANDOM_ONE_MODULE_SPLIT" &&
+                styles.gameModeButtonSelected,
+            ]}
+            disabled={selectedGameMode === "RANDOM_ONE_MODULE_SPLIT"}
+            onPress={() => setSelectedGameMode("RANDOM_ONE_MODULE_SPLIT")}
+          >
+            <Text
+              style={[
+                styles.gameModeText,
+                selectedGameMode != "RANDOM_ONE_MODULE_SPLIT" &&
+                  styles.gameModeTextSelected,
+              ]}
+            >
+              Split
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {selectedGameMode && (
+          <View style={styles.gameModeDetailsContainer}>
+            <Text style={styles.gameModeDetailsText}>
+              {gameModeDetails[selectedGameMode]}
             </Text>
           </View>
         )}
+      </View>
 
-        {selectedDifficulty && (
-          <View style={styles.gameModeContainer}>
-            <Text style={styles.gameModeTitle}>Mode de jeu</Text>
-            <View style={styles.gameModeButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.gameModeButton,
-                  selectedGameMode === "ONE_OPERATOR_ONE_MODULE" &&
-                    styles.gameModeButtonSelected,
-                ]}
-                onPress={() => setSelectedGameMode("ONE_OPERATOR_ONE_MODULE")}
-              >
-                <Text
-                  style={[
-                    styles.gameModeText,
-                    selectedGameMode === "ONE_OPERATOR_ONE_MODULE" &&
-                      styles.gameModeTextSelected,
-                  ]}
-                >
-                  Standard
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.gameModeButton,
-                  selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" &&
-                    styles.gameModeButtonSelected,
-                ]}
-                onPress={() => setSelectedGameMode("RANDOM_ONE_MODULE_SPLIT")}
-              >
-                <Text
-                  style={[
-                    styles.gameModeText,
-                    selectedGameMode === "RANDOM_ONE_MODULE_SPLIT" &&
-                      styles.gameModeTextSelected,
-                  ]}
-                >
-                  Split
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {selectedGameMode && (
-              <View style={styles.gameModeDetailsContainer}>
-                <Text style={styles.gameModeDetailsText}>
-                  {gameModeDetails[selectedGameMode]}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+      <View style={styles.navigationContainer}>
+        <NavigationButton
+          href="/agent/joinGame"
+          label="Confirmer"
+          color={!selectedDifficulty ? "gray" : "red"}
+          onPress={handleNext}
+          disabled={!selectedDifficulty}
+        />
 
-        <View style={styles.navigationContainer}>
-          <NavigationButton onPress={handleBack} label="Retour" color="red" />
-          {selectedDifficulty && (
-            <NavigationButton
-              href="/agent/joinGame"
-              label="Suivant"
-              color="red"
-              onPress={handleNext}
-            />
-          )}
-        </View>
+        <NavigationButton onPress={handleBack} label="Retour" color="blue" />
       </View>
     </ThemedView>
   );
@@ -231,15 +233,20 @@ export default function DifficultyScreen() {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    marginTop: "0%",
-    marginBottom: "0%",
-    flex: 1,
     height: "100%",
     width: "100%",
     flexDirection: "column",
-    backgroundColor: "white",
     alignContent: "center",
     justifyContent: "center",
+    gap: 40,
+  },
+  title: {
+    textAlign: "center",
+    fontSize: 30,
+    color: "white",
+  },
+  difficultyContainer: {
+    flexDirection: "column",
   },
   logoContainer: {
     marginTop: 100,
@@ -260,23 +267,20 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
 
-  difficultyContainer: {
+  difficultyButtonContainer: {
     flexDirection: "row",
     width: "100%",
     alignSelf: "center",
     justifyContent: "space-around",
     alignItems: "center",
-    maxHeight: "40%",
   },
 
   buttonContent: {
     width: "30%",
-    height: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
   buttonImage: { width: "100%", zIndex: 4 },
-
   easyButton: {
     backgroundColor: "#4CAF50",
     zIndex: 2,
@@ -301,7 +305,6 @@ const styles = StyleSheet.create({
   },
 
   detailsContainer: {
-    marginTop: 30,
     padding: 20,
     alignItems: "center",
   },
@@ -320,15 +323,14 @@ const styles = StyleSheet.create({
   },
 
   navigationContainer: {
-    marginTop: 30,
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "center",
     gap: 20,
-    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
   },
 
   navigationButton: {
-    backgroundColor: "white",
     padding: 16,
     borderRadius: 4,
     width: 130,
@@ -341,8 +343,6 @@ const styles = StyleSheet.create({
   },
 
   gameModeContainer: {
-    marginTop: 30,
-    padding: 20,
     alignItems: "center",
   },
 
@@ -365,25 +365,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: "#666",
-    backgroundColor: "transparent",
+    borderColor: "#61956b",
+    backgroundColor: "#1c261e",
     minWidth: 120,
     alignItems: "center",
   },
 
   gameModeButtonSelected: {
-    borderColor: "#4CAF50",
+    borderColor: "#afdfb1",
     backgroundColor: "#4CAF50",
   },
 
   gameModeText: {
-    color: "#999",
+    color: "#61956b",
     fontSize: 16,
     fontWeight: "600",
   },
 
   gameModeTextSelected: {
-    color: "white",
+    color: "#afdfb1",
   },
 
   gameModeDetailsContainer: {

@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     marginVertical: 50,
+    gap: 10,
   },
   codeContainer: {
     flexDirection: "row",
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
   separator: { fontSize: 20, color: "white" },
   navigationContainer: {
     marginTop: 30,
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "center",
     gap: 20,
   },
