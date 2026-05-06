@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { ThemeProvider, DarkTheme } from "@react-navigation/native";
+import { AudioProvider } from "@/components/audio/AudioProvider";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -26,25 +27,28 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={DarkTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="agent/dificulty" options={{ headerShown: false }} />
-        <Stack.Screen name="agent/joinGame" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="agent/waitingRoom"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="agent/timerPage" options={{ headerShown: false }} />
+    <AudioProvider>
+      <ThemeProvider value={DarkTheme}>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="agent/dificulty" options={{ headerShown: false }} />
+          <Stack.Screen name="agent/joinGame" options={{ headerShown: false }} />
+          <Stack.Screen name="audio/audioMenu" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="agent/waitingRoom"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="agent/timerPage" options={{ headerShown: false }} />
 
-        <Stack.Screen
-          name="analyst/joinGame"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="analyst/manual" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+          <Stack.Screen
+            name="analyst/joinGame"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="analyst/manual" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </AudioProvider>
   );
 }
