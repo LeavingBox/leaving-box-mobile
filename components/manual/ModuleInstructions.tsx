@@ -69,8 +69,10 @@ function ResolutionTable({ items }: { items: ResolutionItem[] }) {
 
 export default function ModuleInstructions({
   manual,
+  unlockedHints = [],
 }: Readonly<{
   manual: ModuleManual;
+  unlockedHints?: string[];
 }>) {
   const toArray = (value?: string | string[]): string[] => {
     if (!value) return [];
@@ -123,6 +125,18 @@ export default function ModuleInstructions({
             <Text key={i} style={styles.body}>
               {rule}
             </Text>
+          ))}
+        </View>
+      )}
+
+      {unlockedHints.length > 0 && (
+        <View style={styles.hintsSection}>
+          <Text style={styles.hintsSectionTitle}>💡 Indices débloqués</Text>
+          {unlockedHints.map((hint, i) => (
+            <View key={i} style={styles.hintRow}>
+              <Text style={styles.hintNumber}>{i + 1}</Text>
+              <Text style={styles.hintText}>{hint}</Text>
+            </View>
           ))}
         </View>
       )}
@@ -246,6 +260,38 @@ const styles = StyleSheet.create({
   tableCellWide: {
     flex: 2,
     borderRightWidth: 0,
+  },
+  hintsSection: {
+    marginTop: 16,
+    backgroundColor: "#FFF8E1",
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: "#F59E0B",
+    padding: 12,
+  },
+  hintsSectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#92400E",
+    marginBottom: 8,
+  },
+  hintRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 6,
+  },
+  hintNumber: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#B45309",
+    marginRight: 8,
+    minWidth: 16,
+  },
+  hintText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#78350F",
   },
   solutionRow: {
     flexDirection: "row",

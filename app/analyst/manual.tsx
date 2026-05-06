@@ -31,7 +31,10 @@ export default function Manual() {
 
   const { sessionCode, maxTime, role, moduleManuals } = useLocalSearchParams();
   const [selectedManual, setSelectedManual] = useState<ModuleManual | null>(
-    null,
+    null
+  );
+  const [unlockedHints, setUnlockedHints] = useState<Record<string, string[]>>(
+    {}
   );
 
   // Parser les manuels seulement s'ils existent et sont valides
@@ -83,21 +86,56 @@ export default function Manual() {
       ]);
     };
 
-    const handleSessionClosed = async (data: any) => {
+    const handleSessionClosed = async () => {
       await clearSession();
       Socket.removeAllListeners();
       Socket.disconnect();
       router.replace("/");
     };
 
+    const handleExtraHintAlert = (data: {
+      moduleId: string;
+      moduleNumber: number;
+      message?: string;
+    }) => {
+      const targetManual = Manuals.find(
+        (m) => String(m._id ?? m.moduleId) === String(data.moduleId)
+      );
+
+      setUnlockedHints((prev) => {
+        const current = prev[data.moduleId] ?? [];
+        const hintIndex = current.length;
+        const hintText =
+          targetManual?.hints?.[hintIndex] ??
+          data.message ??
+          `Indice #${hintIndex + 1} pour le module ${data.moduleNumber}.`;
+
+        Alert.alert("💡 Nouvel indice débloqué", hintText, [
+          targetManual
+            ? {
+                text: "Voir le module",
+                onPress: () => setSelectedManual(targetManual),
+              }
+            : { text: "OK" },
+        ]);
+
+        return {
+          ...prev,
+          [data.moduleId]: [...current, hintText],
+        };
+      });
+    };
+
     Socket.on("sessionCleared", handleSessionCleared);
     Socket.on("gameOver", handleGameOver);
     Socket.on("sessionClosed", handleSessionClosed);
+    Socket.on("extraHintAlert", handleExtraHintAlert);
 
     return () => {
       Socket.off("sessionCleared", handleSessionCleared);
       Socket.off("gameOver", handleGameOver);
       Socket.off("sessionClosed", handleSessionClosed);
+      Socket.off("extraHintAlert", handleExtraHintAlert);
     };
   }, []);
 
@@ -166,7 +204,16 @@ export default function Manual() {
           <View style={styles.contentContainer}>
             {Manuals.length > 0 ? (
               selectedManual ? (
-                <ModuleInstructions manual={selectedManual} />
+                <ModuleInstructions
+                  manual={selectedManual}
+                  unlockedHints={
+                    unlockedHints[
+                      String(
+                        selectedManual._id ?? selectedManual.moduleId ?? ""
+                      )
+                    ] ?? []
+                  }
+                />
               ) : (
                 <Text style={styles.title}>
                   Bomb Defusal Manual, for an Analyst
