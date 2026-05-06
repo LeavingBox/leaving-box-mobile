@@ -4,7 +4,16 @@ import {
   SolutionWithIndex,
   StructuredSolution,
 } from "@/core/interface/module.interface";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const isStructuredObj = (value: unknown): value is StructuredSolution =>
   typeof value === "object" &&
@@ -74,6 +83,8 @@ export default function ModuleInstructions({
   manual: ModuleManual;
   unlockedHints?: string[];
 }>) {
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+
   const toArray = (value?: string | string[]): string[] => {
     if (!value) return [];
     return Array.isArray(value) ? value : [value];
@@ -111,11 +122,41 @@ export default function ModuleInstructions({
       )}
 
       {manual.imgUrl && (
-        <Image
-          resizeMode="contain"
-          source={{ uri: manual.imgUrl }}
-          style={styles.image}
-        />
+        <>
+          <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+            <Image
+              resizeMode="contain"
+              source={{
+                uri: manual.imgUrl.startsWith("http")
+                  ? manual.imgUrl
+                  : `${process.env.EXPO_PUBLIC_API_URL}${manual.imgUrl}`,
+              }}
+              style={styles.image}
+            />
+          </TouchableOpacity>
+
+          <Modal
+            visible={imageModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setImageModalVisible(false)}
+          >
+            <Pressable
+              style={styles.modalOverlay}
+              onPress={() => setImageModalVisible(false)}
+            >
+              <Image
+                resizeMode="contain"
+                source={{
+                  uri: manual.imgUrl.startsWith("http")
+                    ? manual.imgUrl
+                    : `${process.env.EXPO_PUBLIC_API_URL}${manual.imgUrl}`,
+                }}
+                style={styles.modalImage}
+              />
+            </Pressable>
+          </Modal>
+        </>
       )}
 
       {(rulesItems.length > 0 || gameRulesItems.length > 0) && (
@@ -226,6 +267,16 @@ const styles = StyleSheet.create({
     height: 300,
     alignSelf: "center",
     marginTop: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalImage: {
+    width: "95%",
+    height: "80%",
   },
   structuredBlock: {
     marginBottom: 12,
