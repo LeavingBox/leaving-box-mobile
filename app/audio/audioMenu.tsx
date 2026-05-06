@@ -6,11 +6,16 @@ import NavigationButton from "@/components/NavigationButton";
 import { router } from "expo-router";
 
 export default function AudioMenu() {
-  const { setMusicVolume, volume } = useAudio();
+  const { setMusicVolume, playMusic, volume } = useAudio();
 
   const handleBack = () => {
     router.navigate("/");
   };
+
+  const handleCredits = () => {
+    playMusic('credits');
+    router.navigate("/creditsScreen");
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -26,8 +31,13 @@ export default function AudioMenu() {
 
       <Text style={styles.value}>{Math.round(volume * 100)}%</Text>
       <View style={styles.navigationContainer}>
-          <NavigationButton onPress={handleBack} label="Retour" color="red" />
-        </View>
+        <NavigationButton onPress={handleBack} label="Retour" color="red" />
+        <NavigationButton 
+          onPress={handleCredits}
+          label="Crédits" 
+          color="blue" 
+        />
+      </View>
     </ThemedView>
   );
 };
