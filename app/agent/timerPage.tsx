@@ -2,6 +2,7 @@ import NavigationButton from "@/components/NavigationButton";
 import { ThemedView } from "@/components/ThemedView";
 import { Socket } from "@/core/api/session.api";
 import { clearSession } from "@/core/service/session.service";
+import { useAudio } from "@/hooks/useAudio";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -61,6 +62,7 @@ type RequestExtraHintResponse = {
 
 export default function TimerPage() {
   const router = useRouter();
+  const { stopMusic } = useAudio();
   const { sessionCode, maxTime, role } = useLocalSearchParams<TimerParams>();
   const [minutes, setMinutes] = useState("0");
   const [seconds, setSeconds] = useState("0");
@@ -115,6 +117,8 @@ export default function TimerPage() {
     hasReachedLimit;
 
   useEffect(() => {
+    stopMusic();
+
     handleTime(Number(maxTime) || 0);
 
     const timerTimeout = setTimeout(() => {
@@ -126,8 +130,17 @@ export default function TimerPage() {
       setHasTimerStarted(true);
     };
 
-    const handleGameOver = (data: { message: string }) => {
-      Alert.alert("Fin de la partie", data.message, [
+    const handleGameOver = (data: {
+      message: string;
+      gameResult: "Win" | "Lose";
+    }) => {
+      const isWin = data.gameResult === "Win";
+      const title = isWin ? "Victoire" : "Défaite";
+      const message = data.gameResult
+        ? `${data.message}\n${title}`
+        : data.message;
+
+      Alert.alert(title, message, [
         {
           text: "MENU",
           onPress: async () => {
