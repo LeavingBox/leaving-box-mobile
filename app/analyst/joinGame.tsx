@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
+import { Image, View, Text, TextInput, StyleSheet, Alert } from "react-native";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { LinearGradient } from "expo-linear-gradient";
 import NavigationButton from "@/components/NavigationButton";
 import { Socket } from "@/core/api/session.api";
 import { clearSession } from "@/core/service/session.service";
 import { useRouter } from "expo-router";
+import { ThemedView } from "@/components/ThemedView";
 
 /**
  * Page de connexion pour les opérateurs
@@ -157,59 +158,72 @@ export default function JoinGame() {
     }
   };
   return (
-    <ParallaxScrollView>
+    <ThemedView style={styles.mainContainer}>
+      <View style={styles.background}>
+        <Image
+          source={require("@/assets/images/Blue_grid_bg.png")}
+          style={styles.backgroundImage}
+        />
+      </View>
       <View style={styles.container}>
-        <Text style={styles.title}>Why do we use it?</Text>
+        <Text style={styles.title}>Join the session</Text>
 
-        <LinearGradient
-          colors={["#66a6ff", "#89f7fe"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.inputContainer}
-        >
-          <TextInput
-            style={styles.input}
-            placeholder="Enter code"
-            placeholderTextColor="#000000"
-            value={code}
-            onChangeText={setCode}
-          />
-        </LinearGradient>
-
-        <Text style={styles.description}>
+        {/* TO DO, make a real text !! */}
+        {/* <Text style={styles.description}>
           Proident est dolore ullamco cupidatat non ullamco anim. Laborum ea
           aliquip magna deserunt qui. Elit mollit elit deserunt velit labore
           proident adipisicing nisi esse sunt laboris. Magna eu dolore ad. Aute
           Lorem aute tempor dolore nisi aliqua reprehenderit commodo ut laborum
           nostrud laboris pariatur. Duis amet in minim sunt amet adipisicing
           velit consectetur amet pariatur sunt ut.
-        </Text>
+        </Text> */}
+        <TextInput
+          style={styles.input}
+          placeholder="Enter code"
+          placeholderTextColor="#ffffff"
+          value={code}
+          onChangeText={setCode}
+        />
         <View style={styles.navigationContainer}>
           <NavigationButton
-            label="Retour"
-            onPress={handleBack}
-            color="blue"
-            textColor="black"
+            disabled={code.length != 4}
+            label="Rejoindre la partie"
+            color={code.length != 4 ? "gray" : "blue"}
+            onPress={handleNext}
           />
-          {code.length > 0 && (
-            <NavigationButton
-              label="Rejoindre la partie"
-              color="blue"
-              onPress={handleNext}
-            />
-          )}
+          <NavigationButton label="Retour" onPress={handleBack} color="red" />
         </View>
       </View>
-    </ParallaxScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    marginTop: "0%",
+    marginBottom: "0%",
+    flex: 1,
+    height: "100%",
+    width: "100%",
+    flexDirection: "column",
+    backgroundColor: "white",
+    alignContent: "center",
+    justifyContent: "center",
+  },
+  backgroundImage: { width: "100%", height: "100%" },
+  background: {
+    position: "absolute",
+    top: "0%",
+    width: "100%",
+    height: "100%",
+  },
   container: {
     flex: 1,
     padding: 20,
     alignItems: "center",
+    justifyContent: "center",
     marginVertical: 50,
+    gap: 40,
   },
   title: {
     fontSize: 20,
@@ -217,6 +231,7 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
     marginVertical: 10,
+    marginBottom: 40,
   },
   description: {
     fontSize: 14,
@@ -235,16 +250,18 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   input: {
-    color: "#000000",
+    color: "#ffffff",
     fontSize: 16,
     textAlign: "center",
     borderRadius: 10,
+    minWidth: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   navigationContainer: {
+    display: "flex",
     marginTop: 30,
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "center",
     gap: 20,
-    padding: 20,
   },
 });

@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  Image,
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -21,15 +22,26 @@ import {
   GameStartedData,
 } from "@/core/interface/solution.interface";
 
+const toStringArray = (v: unknown): string[] => {
+  if (!v) return [];
+  if (typeof v === "string") return [v];
+  if (Array.isArray(v)) return v.map(String);
+  return [];
+};
+
 const toModuleManual = (raw: Record<string, unknown>): ModuleManual => {
   const src = (raw._doc ?? raw) as Record<string, unknown>;
-  const rules = src.rules;
+  const desc = src.description;
   return {
     _id: (src._id ?? src.moduleId) as string | undefined,
     moduleId: (src.moduleId ?? src._id) as string | undefined,
     name: String(src.name ?? ""),
-    description: String(src.description ?? ""),
-    rules: typeof rules === "string" ? [rules] : Array.isArray(rules) ? (rules as string[]) : [],
+    title: src.title as string | undefined,
+    Objectif: src.Objectif as string | undefined,
+    description: Array.isArray(desc) ? (desc as string[]) : String(desc ?? ""),
+    rules: toStringArray(src.rules),
+    gameRules: toStringArray(src.gameRules),
+    hints: toStringArray(src.hints),
     imgUrl: src.imgUrl as string | undefined,
     solutions: (src.solutions as ModuleManual["solutions"]) ?? [],
   };
@@ -49,13 +61,17 @@ export default function WaitingRoom() {
   const [isLoading, setIsLoading] = useState(true);
 
   const handleBack = () => {
-    if (sessionCode) Socket.emit("back", { sessionCode: sessionCode as string, role });
+    if (sessionCode)
+      Socket.emit("back", { sessionCode: sessionCode as string, role });
     if (role === "analyste") Socket.disconnect();
     router.back();
   };
 
   useEffect(() => {
-    const interval = setInterval(() => Socket.emit("getSession", { sessionCode, role }), 1000);
+    const interval = setInterval(
+      () => Socket.emit("getSession", { sessionCode, role }),
+      1000
+    );
 
     const handleCurrentSession = (data: Session) => {
       setSession(data);
@@ -63,14 +79,17 @@ export default function WaitingRoom() {
     };
 
     const handleGameStarted = (data: GameStartedData) => {
-      const modules = data.moduleManuals?.map((m) => toModuleManual(m as Record<string, unknown>)) ?? [];
+      const modules =
+        data.moduleManuals?.map((m) =>
+          toModuleManual(m as Record<string, unknown>)
+        ) ?? [];
       if (modules.length === 0) {
         setModuleManuals([]);
         if (role === "analyste") {
           Alert.alert(
             "Erreur",
             "Aucun module reçu. La partie n'a pas pu démarrer correctement.",
-            [{ text: "OK" }],
+            [{ text: "OK" }]
           );
         }
         return;
@@ -78,15 +97,19 @@ export default function WaitingRoom() {
 
       const socketId = Socket.id;
       if (role === "analyste" && !socketId && data.solutionsByAnalyste) {
-        console.warn("[WaitingRoom] Socket.id indéfini : solutions par analyste non appliquées.");
+        console.warn(
+          "[WaitingRoom] Socket.id indéfini : solutions par analyste non appliquées."
+        );
       }
-      const mySolutions = socketId ? data.solutionsByAnalyste?.[socketId] : undefined;
+      const mySolutions = socketId
+        ? data.solutionsByAnalyste?.[socketId]
+        : undefined;
       const manuals =
         role === "analyste" && mySolutions
           ? modules.map((manual) => {
               const match = mySolutions.find(
                 (s: AnalystSolution) =>
-                  String(s.moduleId) === String(manual._id ?? manual.moduleId),
+                  String(s.moduleId) === String(manual._id ?? manual.moduleId)
               );
               return { ...manual, solutions: match?.solutions ?? [] };
             })
@@ -96,7 +119,12 @@ export default function WaitingRoom() {
       if (role === "analyste") {
         router.navigate({
           pathname: "/analyst/manual",
-          params: { sessionCode, maxTime, role, moduleManuals: JSON.stringify(manuals) },
+          params: {
+            sessionCode,
+            maxTime,
+            role,
+            moduleManuals: JSON.stringify(manuals),
+          },
         });
       }
     };
@@ -140,14 +168,18 @@ export default function WaitingRoom() {
   }, [role]);
 
   const handleNext = () => {
-    Socket.emit("startGame", { sessionCode, role }, (res: { success: boolean; message?: string }) => {
-      if (res.success) {
-        router.navigate({
-          pathname: "/agent/timerPage",
-          params: { sessionCode, maxTime, role },
-        });
-      } else Alert.alert("Erreur", res.message);
-    });
+    Socket.emit(
+      "startGame",
+      { sessionCode, role },
+      (res: { success: boolean; message?: string }) => {
+        if (res.success) {
+          router.navigate({
+            pathname: "/agent/timerPage",
+            params: { sessionCode, maxTime, role },
+          });
+        } else Alert.alert("Erreur", res.message);
+      }
+    );
   };
 
   const handleJoin = () => {
@@ -162,70 +194,120 @@ export default function WaitingRoom() {
         },
       });
     } else {
-      Alert.alert("Partie non démarrée", "Attendez que l'agent lance la partie.");
+      Alert.alert(
+        "Partie non démarrée",
+        "Attendez que l'agent lance la partie."
+      );
     }
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <Text style={styles.title}>Salle d'attente</Text>
-      <TouchableOpacity
-        style={[styles.codeButton, { backgroundColor: role === "agent" ? "red" : "blue" }]}
-        onPress={() => Clipboard.setStringAsync(sessionCode as string)}
-      >
-        <Text style={styles.codeText}>{sessionCode}</Text>
-      </TouchableOpacity>
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#ffffff" style={{ marginBottom: 20 }} />
-      ) : (
-        <>
-          {session?.players ? (
-            <>
-              {session.players.some((p: Player) => p.role === "agent") && (
-                <PlayerConnected key="agent" role="agent" />
-              )}
-              {session.players
-                .filter((p: Player) => p.role === "analyste")
-                .map((p: Player, i: number) => (
-                  <PlayerConnected key={p.id ?? i} role="analyste" />
-                ))}
-            </>
-          ) : (
-            session?.connectedClients?.map((_, i) => (
-              <PlayerConnected key={i} role={i === 0 ? "agent" : "analyste"} />
-            ))
+    <ThemedView style={styles.mainContainer}>
+      <View style={styles.background}>
+        <Image
+          source={require("@/assets/images/Red_grid_bg.png")}
+          style={styles.backgroundImage}
+        />
+      </View>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={[styles.codeButton]}
+          onPress={() => Clipboard.setStringAsync(sessionCode as string)}
+        >
+          <Text style={styles.codeText}>{sessionCode}</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Salle d'attente</Text>
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#ffffff"
+            style={{ marginBottom: 20 }}
+          />
+        ) : (
+          <>
+            {session?.players ? (
+              <>
+                {session.players.some((p: Player) => p.role === "agent") && (
+                  <PlayerConnected key="agent" role="agent" />
+                )}
+                {session.players
+                  .filter((p: Player) => p.role === "analyste")
+                  .map((p: Player, i: number) => (
+                    <PlayerConnected key={p.id ?? i} role="analyste" />
+                  ))}
+              </>
+            ) : (
+              session?.connectedClients?.map((_, i) => (
+                <PlayerConnected
+                  key={i}
+                  role={i === 0 ? "agent" : "analyste"}
+                />
+              ))
+            )}
+          </>
+        )}
+        <View style={styles.buttonContainer}>
+          {role === "agent" && (
+            <NavigationButton
+              onPress={handleNext}
+              param={{ sessionCode }}
+              label="Lancer la partie"
+              color="red"
+            />
           )}
-        </>
-      )}
-      <View style={styles.buttonContainer}>
-        {role === "agent" && (
-          <NavigationButton onPress={handleNext} param={{ sessionCode }} label="Lancer la partie" color="red" />
-        )}
-        {role === "analyste" && (
-          <NavigationButton onPress={handleJoin} param={{ sessionCode }} label="Rejoindre la partie" color="red" />
-        )}
-        <NavigationButton onPress={handleBack} param={{ sessionCode }} label="Quitter" color={role === "agent" ? "red" : "blue"} />
+          {role === "analyste" && (
+            <NavigationButton
+              onPress={handleJoin}
+              param={{ sessionCode }}
+              label="Rejoindre la partie"
+              color="red"
+            />
+          )}
+          <NavigationButton
+            onPress={handleBack}
+            param={{ sessionCode }}
+            label="Quitter"
+            color={role === "agent" ? "red" : "blue"}
+          />
+        </View>
       </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    marginTop: "0%",
+    marginBottom: "0%",
+    flex: 1,
+    height: "100%",
+    width: "100%",
+    flexDirection: "column",
+    backgroundColor: "white",
+    alignContent: "center",
+    justifyContent: "center",
+  },
+
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
+  background: {
+    position: "absolute",
+    top: "0%",
+    width: "100%",
+    height: "100%",
+  },
+  backgroundImage: { width: "100%", height: "100%" },
   codeButton: {
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 5,
     marginVertical: 20,
     elevation: 5,
-    position: "absolute",
-    top: 20,
-    right: 20,
+    backgroundColor: "red",
   },
   codeText: {
     color: "white",

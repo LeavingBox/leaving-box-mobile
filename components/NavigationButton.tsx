@@ -6,11 +6,12 @@ import { LinearGradient } from "expo-linear-gradient";
 interface NavigationButtonProps {
   href?: LinkProps["href"];
   label: string;
-  color?: "blue" | "red"; // Couleur du bouton
+  color?: "blue" | "red" | "gray"; // Couleur du bouton
   textColor?: "black" | "white"; // Couleur du texte
   gradientDirection?: "top-to-bottom" | "bottom-to-top"; // Orientation du gradient
   param?: any;
   onPress?: () => void;
+  disabled?: boolean;
 }
 
 const NavigationButton: React.FC<NavigationButtonProps> = ({
@@ -20,28 +21,43 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   onPress,
   color = "blue",
   textColor = "white",
-  gradientDirection = "top-to-bottom", // Valeur par défaut
+  gradientDirection = "top-to-bottom",
+  disabled = false, // Valeur par défaut
 }) => {
   // Définition des couleurs du gradient en fonction de la couleur choisie
-  const gradientColors =
+  const gradientColors: readonly [string, string, ...string[]] =
     color === "blue"
-      ? ["#66a6ff", "#89f7fe"] // Dégradé bleu
+      ? ["#2D38F2", "#131CBB", "#11188D"]
       : color === "red"
-      ? ["#660708", "#AD1D2B", "#DE070B"] // Dégradé rouge foncé -> clair
-      : ["#ff512f", "#000000"]; // Dégradé par défaut (orange -> noir)
-
+        ? ["#F22D2D", "#BB1313", "#8D1111"]
+        : color === "gray"
+          ? ["#4B4847", "#575656", "#2C2B29"]
+          : ["#ff512f", "#000000"]; // fallback
   // Définition du sens du gradient
   const gradientStart =
-    gradientDirection === "start" ? { x: 0, y: 0 } : { x: 0, y: 1 };
-  const gradientEnd =
-    gradientDirection === "end" ? { x: 0, y: 1 } : { x: 0, y: 0 };
+    gradientDirection === "top-to-bottom" ? { x: 0, y: 0 } : { x: 0, y: 1 };
 
+  const gradientEnd =
+    gradientDirection === "top-to-bottom" ? { x: 0, y: 1 } : { x: 0, y: 0 };
+  const gradientLocations: readonly [number, number, ...number[]] =
+    color === "blue"
+      ? [0, 0.1442, 1]
+      : color === "red"
+        ? [0, 0.1442, 1]
+        : color === "gray"
+          ? [0, 0.0673, 1]
+          : [0, 1];
   return (
-    <TouchableOpacity style={styles.buttonContainer} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.buttonContainer}
+      onPress={onPress}
+      disabled={disabled}
+    >
       <LinearGradient
         colors={gradientColors}
         start={gradientStart}
         end={gradientEnd}
+        locations={gradientLocations}
         style={styles.gradientButton}
       >
         <Text style={[styles.buttonText, { color: textColor }]}>{label}</Text>
@@ -55,10 +71,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: "hidden",
     elevation: 5,
+    minWidth: "100%",
   },
   gradientButton: {
-    paddingVertical: 15,
-    paddingHorizontal: 25,
+    paddingVertical: 20,
+    paddingHorizontal: 50,
     alignItems: "center",
     borderRadius: 5,
   },

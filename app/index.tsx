@@ -11,46 +11,58 @@ export default function HomeScreen() {
   useEffect(() => {
     playMusic("menu");
   }, []);
-  
+
   return (
     <ThemedView style={styles.mainContainer}>
-      <Pressable
-        onPress={() => router.navigate("/audio/audioMenu")}
-        style={styles.settingsButton}
-      >
+      <View style={styles.topBar}>
         <Image
-          source={require("@/assets/images/parameters.png")}
-          style={styles.icon}
+          source={require("@/assets/images/LOGO.png")}
+          style={styles.logo}
         />
-      </Pressable>
-      <RoleSelector
-        imgLink={require("@/assets/images/femaleAgent.png")}
-        text={"Agent"}
-        onPress={() => router.navigate("/agent/dificulty")}
-      />
-      <RoleSelector
-        imgLink={require("@/assets/images/maleScientist.png")}
-        text={"Analyst"}
-        onPress={() => router.navigate("/analyst/joinGame")}
-      />
+        <Pressable
+          onPress={() => router.navigate("/audio/audioMenu")}
+          style={styles.settingsButton}
+        >
+          <Image
+            source={require("@/assets/images/parameters.png")}
+            style={styles.icon}
+          />
+        </Pressable>
+      </View>
+
+      <RoleSelector isAgent={true} />
+      <RoleSelector isAgent={false} />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   mainContainer: {
-    marginTop: "20%",
-    marginBottom: "10%",
+    marginTop: "0%",
+    marginBottom: "0%",
     flex: 1,
     height: "100%",
     flexDirection: "column",
-    gap: "10%",
+    backgroundColor: "white",
+    gap: 20,
   },
-  settingsButton: {
+  topBar: {
     position: "absolute",
     top: 30,
-    right: 20,
+    left: 0,
+    paddingLeft: 10,
+    paddingRight: 10,
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
     zIndex: 10,
+  },
+  settingsButton: {},
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
   },
   icon: {
     width: 60,

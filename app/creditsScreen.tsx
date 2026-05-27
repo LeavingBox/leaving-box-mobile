@@ -15,8 +15,8 @@ const { height } = Dimensions.get("window");
 
 const COLORS = {
   bg: "#0D0D14",
-  blue: "#1D28F2",
-  red: "#F21905",
+  blue: "#787fff",
+  red: "#ff5d4e",
   white: "#FFFFFF",
 };
 
@@ -31,14 +31,14 @@ export default function CreditsScreen() {
         toValue: -1500,
         duration: 60000,
         useNativeDriver: true,
-      })
+      }),
     ).start();
   }, []);
 
   const handleBack = () => {
-    playMusic('menu');
+    playMusic("menu");
     router.back();
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -53,10 +53,7 @@ export default function CreditsScreen() {
 
       {/* Scroll animé */}
       <Animated.View
-        style={[
-          styles.scrollContainer,
-          { transform: [{ translateY }] },
-        ]}
+        style={[styles.scrollContainer, { transform: [{ translateY }] }]}
       >
         <CreditsBlock />
       </Animated.View>
@@ -69,8 +66,7 @@ export default function CreditsScreen() {
             style={[
               styles.dot,
               {
-                backgroundColor:
-                  i % 2 === 0 ? COLORS.blue : COLORS.red,
+                backgroundColor: i % 2 === 0 ? COLORS.blue : COLORS.red,
               },
             ]}
           />
@@ -84,7 +80,7 @@ function CreditsBlock() {
   return (
     <View style={styles.content}>
       <Image
-        source={require("@/assets/images/bomb-logo.png")}
+        source={require("@/assets/images/LOGO.png")}
         style={styles.firstLogo}
       />
 
@@ -95,19 +91,26 @@ function CreditsBlock() {
 
       <Header title="PROJET SIGNAL ZERO" />
 
-      <Section
-        title="Direction du projet"
-        names={["Enzo Midonet"]}
-      />
+      <Section title="Direction du projet" names={["Enzo Midonet"]} />
 
       <Section
         title="Développement"
-        names={["Samuel Guesdon", "Gabrielle Baquie", "Maxime Oriot", "Enzo Midonet"]}
+        names={[
+          "Samuel Guesdon",
+          "Gabrielle Baquie",
+          "Maxime Oriot",
+          "Enzo Midonet",
+        ]}
       />
 
       <Section
         title="Électronique & Impression 3D"
-        names={["Irwin Ticon Gaultier", "Dan Irnel", "Melkiade Ngnintedem Tsobeng", "Guilhem Raffanel"]}
+        names={[
+          "Irwin Ticon Gaultier",
+          "Dan Irnel",
+          "Melkiade Ngnintedem Tsobeng",
+          "Guilhem Raffanel",
+        ]}
       />
 
       <Divider />
@@ -119,10 +122,7 @@ function CreditsBlock() {
         names={["Tiavina Rakoto Endor", "Noemie Eberle", "Benjamin Boulon"]}
       />
 
-      <Section
-        title="Sound Design / Musique"
-        names={["Maxime Oriot"]}
-      />
+      <Section title="Sound Design / Musique" names={["Maxime Oriot"]} />
 
       <Divider />
 
@@ -147,9 +147,7 @@ function CreditsBlock() {
         </Text>
       ))}
 
-      <Text style={styles.final}>
-        Merci !!!
-      </Text>
+      <Text style={styles.final}>Merci !!!</Text>
 
       <View style={{ height: 300 }} />
     </View>
@@ -164,13 +162,7 @@ function Divider() {
   return <View style={styles.divider} />;
 }
 
-function Section({
-  title,
-  names,
-}: {
-  title: string;
-  names: string[];
-}) {
+function Section({ title, names }: { title: string; names: string[] }) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -183,11 +175,7 @@ function Section({
   );
 }
 
-function MiniModule({
-  label,
-}: {
-  label: string;
-}) {
+function MiniModule({ label }: { label: string }) {
   return (
     <View style={styles.module}>
       <Text style={styles.moduleLabel}>{label}</Text>
@@ -366,5 +354,5 @@ const styles = StyleSheet.create({
     height: 90,
     resizeMode: "contain",
     marginBottom: -100,
-  }
+  },
 });

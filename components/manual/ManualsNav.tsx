@@ -1,81 +1,84 @@
 import { ModuleManual } from "@/core/interface/module.interface";
 import { ThemedView } from "../ThemedView";
-import {
-  ImageBackground,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function ManualsNav({
-  manual,
+  data,
   selectedManual,
   setSelectedManual,
-  index,
-  length,
 }: Readonly<{
-  manual: ModuleManual;
+  data: ModuleManual[];
   selectedManual: ModuleManual | null;
   setSelectedManual: (manual: ModuleManual) => void;
-  index: number;
-  length: number;
 }>) {
   return (
-    <ThemedView
-      style={[
-        styles.button,
-        styles.shadow,
-        { zIndex: length - index},
-        selectedManual?.name === manual.name && styles.selected,
-      ]}
-    >
-      <Pressable onPress={() => setSelectedManual(manual)}>
-        <ImageBackground
-          source={require("../../assets/images/folder_background.png")}
-          style={styles.backgroundImage}
-          resizeMode="stretch"
+    <View style={styles.navbar}>
+      {data.map((manual, index) => (
+        <ThemedView
+          style={[
+            index == 0 ? styles.buttonFirst : styles.button,
+            { zIndex: data.length - index },
+            selectedManual?.name === manual.name && styles.selectedButton,
+          ]}
         >
-          <Text
-            style={[
-              styles.buttonText,
-              selectedManual?.name === manual.name && styles.selectedButtonText,
-            ]}
+          <Pressable
+            onPress={() => setSelectedManual(manual)}
+            style={styles.pressable}
           >
-            {index + 1}.
-          </Text>
-        </ImageBackground>
-      </Pressable>
-    </ThemedView>
+            <Text
+              style={[
+                styles.buttonText,
+                selectedManual?.name === manual.name &&
+                  styles.selectedButtonText,
+              ]}
+            >
+              {index + 1}
+            </Text>
+          </Pressable>
+        </ThemedView>
+      ))}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  buttonFirst: {
+    width: 30,
+    height: "100%",
+    flex: 1,
+    paddingTop: 10,
+    backgroundColor: " rgba(242, 208, 167, 1)",
+    boxShadow: "-2px 5px 3px 0px rgba(0, 0, 0, 0.50)",
+    borderBottomLeftRadius: 20,
+    borderTopLeftRadius: 20,
+  },
   button: {
     width: 30,
-    height: 70,
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
-    overflow: "hidden",
-    shadowColor: "black",
-  },
-  shadow: {
-    boxShadow: "-2px 5px 3px 0px rgba(0, 0, 0, 0.50)",
-  },
-  selected: {
-    zIndex: 100,
-  },
-
-  backgroundImage: {
-    width: "100%",
     height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1,
+    paddingTop: 30,
+    marginTop: -20,
+    backgroundColor: " rgba(242, 208, 167, 1)",
+    boxShadow: "-2px 5px 3px 0px rgba(0, 0, 0, 0.50)",
+    borderBottomLeftRadius: 20,
   },
-  selectedButton: {},
+  pressable: {
+    height: "100%",
+    width: "100%",
+    display: "flex",
+    alignContent: "center",
+  },
+  navbar: {
+    height: "100%",
+    display: "flex",
+  },
+  selectedButton: {
+    backgroundColor: " rgba(29, 40, 242, 1)",
+  },
   buttonText: {
     color: "#000",
-    fontSize: 16,
+    fontSize: 24,
+    textAlign: "center",
   },
   selectedButtonText: {
     color: "#fff",

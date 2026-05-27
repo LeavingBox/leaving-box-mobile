@@ -23,6 +23,7 @@ import {
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import { ThemedView } from "@/components/ThemedView";
 
 const { width } = Dimensions.get("window");
 
@@ -33,7 +34,9 @@ export default function Manual() {
   const [selectedManual, setSelectedManual] = useState<ModuleManual | null>(
     null,
   );
-
+  const [unlockedHints, setUnlockedHints] = useState<Record<string, string[]>>(
+    {},
+  );
   // Parser les manuels seulement s'ils existent et sont valides
   let Manuals: ModuleManual[] = [];
   try {
@@ -90,21 +93,56 @@ export default function Manual() {
       ]);
     };
 
-    const handleSessionClosed = async (data: any) => {
+    const handleSessionClosed = async () => {
       await clearSession();
       Socket.removeAllListeners();
       Socket.disconnect();
       router.replace("/");
     };
 
+    const handleExtraHintAlert = (data: {
+      moduleId: string;
+      moduleNumber: number;
+      message?: string;
+    }) => {
+      const targetManual = Manuals.find(
+        (m) => String(m._id ?? m.moduleId) === String(data.moduleId),
+      );
+
+      setUnlockedHints((prev) => {
+        const current = prev[data.moduleId] ?? [];
+        const hintIndex = current.length;
+        const hintText =
+          targetManual?.hints?.[hintIndex] ??
+          data.message ??
+          `Indice #${hintIndex + 1} pour le module ${data.moduleNumber}.`;
+
+        Alert.alert("💡 Nouvel indice débloqué", hintText, [
+          targetManual
+            ? {
+                text: "Voir le module",
+                onPress: () => setSelectedManual(targetManual),
+              }
+            : { text: "OK" },
+        ]);
+
+        return {
+          ...prev,
+          [data.moduleId]: [...current, hintText],
+        };
+      });
+    };
+
     Socket.on("sessionCleared", handleSessionCleared);
     Socket.on("gameOver", handleGameOver);
     Socket.on("sessionClosed", handleSessionClosed);
+    Socket.on("extraHintAlert", handleExtraHintAlert);
 
     return () => {
       Socket.off("sessionCleared", handleSessionCleared);
       Socket.off("gameOver", handleGameOver);
       Socket.off("sessionClosed", handleSessionClosed);
+      Socket.off("extraHintAlert", handleExtraHintAlert);
     };
   }, []);
 
@@ -137,74 +175,95 @@ export default function Manual() {
   // L'utilisateur doit explicitement cliquer sur retour pour rejoindre
 
   return (
-    <ParallaxScrollView>
+    <ThemedView style={styles.container}>
+      <View style={styles.background}>
+        <Image
+          source={require("@/assets/images/Blue_grid_bg.png")}
+          style={styles.backgroundImage}
+        />
+      </View>
       <View style={styles.mainContainer}>
         <View style={styles.navContainer}>
-          <ScrollView>
-            {Manuals.length > 0 ? (
-              Manuals.map((manual, index) => (
-                <ManualsNav
-                  key={index}
-                  index={index}
-                  manual={manual}
-                  selectedManual={selectedManual}
-                  length={Manuals.length}
-                  setSelectedManual={(manual: ModuleManual) => {
-                    setSelectedManual(manual);
-                  }}
-                />
-              ))
-            ) : (
-              <Text style={styles.errorText}>Aucun manuel disponible</Text>
-            )}
-          </ScrollView>
+          {Manuals.length > 0 ? (
+            <ManualsNav
+              data={Manuals}
+              selectedManual={selectedManual}
+              setSelectedManual={(manual: ModuleManual) => {
+                setSelectedManual(manual);
+              }}
+            />
+          ) : (
+            <></>
+          )}
         </View>
-
-        <ImageBackground
-          source={require("../../assets/images/folder_background.png")}
-          style={styles.folderBackground}
-          resizeMode="repeat"
+        <View
+          style={[
+            styles.contentContainer,
+            selectedManual && styles.selectedcontent,
+          ]}
         >
-          <Image
-            source={require("../../assets/images/paperclip.png")}
-            style={styles.paperclip}
-          />
-
-          <View style={styles.contentContainer}>
-            {Manuals.length > 0 ? (
-              selectedManual ? (
-                <ModuleInstructions manual={selectedManual} />
-              ) : (
-                <Text style={styles.title}>
-                  Bomb Defusal Manual, for an Analyst
-                </Text>
-              )
+          {Manuals.length > 0 ? (
+            selectedManual ? (
+              <ModuleInstructions
+                manual={selectedManual}
+                unlockedHints={
+                  unlockedHints[
+                    String(selectedManual._id ?? selectedManual.moduleId ?? "")
+                  ] ?? []
+                }
+              />
             ) : (
-              <View style={styles.errorContainer}>
-                <Text style={styles.title}>Manuel non disponible</Text>
-                <Text style={styles.errorText}>
-                  Les manuels n'ont pas pu être chargés. Retournez à la salle
-                  d'attente pour les récupérer.
-                </Text>
-              </View>
-            )}
-          </View>
-        </ImageBackground>
+              <Text style={styles.title}>
+                Bomb Defusal Manual, for an Analyst
+              </Text>
+            )
+          ) : (
+            <View style={styles.errorContainer}>
+              <Text style={styles.title}>Manuel non disponible</Text>
+              <Text style={styles.errorText}>
+                Les manuels n'ont pas pu être chargés. Retournez à la salle
+                d'attente pour les récupérer.
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
-    </ParallaxScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    maxHeight: "100%",
+    height: "100%",
+  },
+  navbar: {
+    height: "100%",
+    display: "flex",
+  },
+  navbarButton: {
+    height: "100%",
+    display: "flex",
+  },
+  backgroundImage: { width: "100%", height: "100%" },
+  background: {
+    position: "absolute",
+    top: "0%",
+    width: "100%",
+    height: "100%",
+  },
   mainContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "flex-start",
     flex: 1,
     marginVertical: 60,
+    height: "100%",
   },
   navContainer: {
     flexDirection: "column",
+    zIndex: 2,
   },
   title: {
     fontSize: 24,
@@ -213,28 +272,28 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginVertical: 100,
   },
-  folderBackground: {
-    zIndex: 10,
-    width: width * 0.91,
-    minHeight: 650,
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    justifyContent: "flex-start",
-    boxShadow: "1px 5px 3px 5px rgba(0, 0, 0, 0.50)",
-  },
-  paperclip: {
+  verticalText: {
+    transform: [{ rotate: "-90deg" }],
+    fontSize: 24,
     position: "absolute",
-    zIndex: 1,
-    top: -20,
-    right: 10,
-    width: 100,
-    height: 100,
-    transform: [{ rotate: "12deg" }],
-    resizeMode: "contain",
+  },
+  folderBackground: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: width,
+    minHeight: 650,
+    height: "100%",
+    justifyContent: "flex-start",
   },
   contentContainer: {
+    width: width * 0.91,
     backgroundColor: "white",
+    height: "100%",
     padding: 15,
+  },
+  selectedcontent: {
+    backgroundColor: "rgba(29, 40, 242, 1)",
   },
   errorContainer: {
     alignItems: "center",
