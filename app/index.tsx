@@ -14,19 +14,22 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.mainContainer}>
-      <Pressable
-        onPress={() => router.navigate("/audio/audioMenu")}
-        style={styles.settingsButton}
-      >
+      <View style={styles.topBar}>
         <Image
           source={require("@/assets/images/LOGO.png")}
           style={styles.logo}
         />
-        <Image
-          source={require("@/assets/images/parameters.png")}
-          style={styles.icon}
-        />
-      </Pressable>
+        <Pressable
+          onPress={() => router.navigate("/audio/audioMenu")}
+          style={styles.settingsButton}
+        >
+          <Image
+            source={require("@/assets/images/parameters.png")}
+            style={styles.icon}
+          />
+        </Pressable>
+      </View>
+
       <RoleSelector isAgent={true} />
       <RoleSelector isAgent={false} />
     </ThemedView>
@@ -43,7 +46,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     gap: 20,
   },
-  settingsButton: {
+  topBar: {
     position: "absolute",
     top: 30,
     left: 0,
@@ -55,6 +58,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     zIndex: 10,
   },
+  settingsButton: {},
   logo: {
     width: 50,
     height: 50,

@@ -220,12 +220,12 @@ export default function DifficultyScreen() {
         <NavigationButton
           href="/agent/joinGame"
           label="Confirmer"
-          color={!selectedDifficulty ? "gray" : "red"}
+          color={!selectedDifficulty ? "gray" : "blue"}
           onPress={handleNext}
           disabled={!selectedDifficulty}
         />
 
-        <NavigationButton onPress={handleBack} label="Retour" color="blue" />
+        <NavigationButton onPress={handleBack} label="Retour" color="red" />
       </View>
     </ThemedView>
   );

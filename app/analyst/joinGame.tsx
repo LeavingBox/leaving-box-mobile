@@ -186,12 +186,12 @@ export default function JoinGame() {
         />
         <View style={styles.navigationContainer}>
           <NavigationButton
-            disabled={code.length < 1}
+            disabled={code.length != 4}
             label="Rejoindre la partie"
-            color="blue"
+            color={code.length != 4 ? "gray" : "blue"}
             onPress={handleNext}
           />
-          <NavigationButton label="Retour" onPress={handleBack} color="gray" />
+          <NavigationButton label="Retour" onPress={handleBack} color="red" />
         </View>
       </View>
     </ThemedView>
