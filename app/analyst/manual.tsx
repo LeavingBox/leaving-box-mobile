@@ -78,7 +78,9 @@ export default function Manual() {
     }) => {
       const isWin = data.gameResult === "Win";
       const title = isWin ? "Victoire" : "Défaite";
-      const message = data.gameResult ? `${data.message}\n${title}` : data.message;
+      const message = data.gameResult
+        ? `${data.message}\n${title}`
+        : data.message;
 
       Alert.alert(title, message, [
         {
@@ -99,7 +101,6 @@ export default function Manual() {
       Socket.disconnect();
       router.replace("/");
     };
-
     const handleExtraHintAlert = (data: {
       moduleId: string;
       moduleNumber: number;
@@ -199,6 +200,7 @@ export default function Manual() {
         <View
           style={[
             styles.contentContainer,
+            Manuals.length > 0 && styles.contentContainerWidth,
             selectedManual && styles.selectedcontent,
           ]}
         >
@@ -213,13 +215,27 @@ export default function Manual() {
                 }
               />
             ) : (
-              <Text style={styles.title}>
-                Bomb Defusal Manual, for an Analyst
-              </Text>
+              <View style={styles.titleContainer}>
+                <View style={styles.midPartContainer}>
+                  <Text style={styles.titleFull}>Bomb Defusal Manual</Text>
+                </View>
+                <View style={styles.midPartContainer}>
+                  <Image
+                    source={require("@/assets/images/classified.png")}
+                    style={styles.titleImg}
+                  />
+                </View>
+              </View>
             )
           ) : (
-            <View style={styles.errorContainer}>
-              <Text style={styles.title}>Manuel non disponible</Text>
+            <View style={styles.titleContainer}>
+              <View style={styles.background}>
+                <Image
+                  source={require("@/assets/images/Red_BG.png")}
+                  style={styles.backgroundImage}
+                />
+              </View>
+              <Text style={styles.errorTitle}>Manuel non disponible</Text>
               <Text style={styles.errorText}>
                 Les manuels n'ont pas pu être chargés. Retournez à la salle
                 d'attente pour les récupérer.
@@ -247,11 +263,24 @@ const styles = StyleSheet.create({
     display: "flex",
   },
   backgroundImage: { width: "100%", height: "100%" },
+  titleImg: { width: "100%", height: "100%", resizeMode: "contain" },
   background: {
     position: "absolute",
     top: "0%",
     width: "100%",
     height: "100%",
+  },
+  titleFull: {
+    width: "100%",
+    textAlign: "center",
+    fontSize: 60,
+    color: "black",
+  },
+  errorTitle: {
+    width: "100%",
+    textAlign: "center",
+    fontSize: 60,
+    color: "white",
   },
   mainContainer: {
     flexDirection: "row",
@@ -287,23 +316,31 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   contentContainer: {
-    width: width * 0.91,
-    backgroundColor: "white",
+    width: width,
+    backgroundColor: "rgba(242, 208, 167, 1)",
     height: "100%",
-    padding: 15,
   },
+  contentContainerWidth: { width: width * 0.91, padding: 15 },
   selectedcontent: {
     backgroundColor: "rgba(29, 40, 242, 1)",
   },
-  errorContainer: {
+  titleContainer: {
     alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
+    justifyContent: "flex-start",
+    width: "100%",
+    height: "100%",
+  },
+  midPartContainer: {
+    width: "100%",
+    height: "50%",
+    display: "flex",
   },
   errorText: {
     fontSize: 16,
-    color: "#666",
+    color: "#cccccc",
     textAlign: "center",
     marginTop: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
   },
 });

@@ -18,7 +18,7 @@ export default function RoleSelector({ isAgent }: RoleSelectorProps) {
     if (isAgent) {
       router.navigate("/agent/dificulty");
     } else {
-      router.navigate("/analyst/joinGame");
+      router.navigate("/analyst/manual");
     }
   }
   const bg = isAgent
