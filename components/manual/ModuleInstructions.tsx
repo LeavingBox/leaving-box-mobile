@@ -9,6 +9,7 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,7 +23,7 @@ const isStructuredObj = (value: unknown): value is StructuredSolution =>
   "items" in (value as object);
 
 const isSolutionWithIndex = (
-  solutions: unknown[]
+  solutions: unknown[],
 ): solutions is SolutionWithIndex[] =>
   solutions.length > 0 &&
   typeof solutions[0] === "object" &&
@@ -97,7 +98,7 @@ export default function ModuleInstructions({
   const rawSolutions = manual.solutions ?? [];
 
   return (
-    <View>
+    <ScrollView>
       <Text style={styles.title}>{manual.name}</Text>
 
       {manual.title && <Text style={styles.subtitle}>{manual.title}</Text>}
@@ -213,13 +214,14 @@ export default function ModuleInstructions({
               ))}
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   title: {
     fontSize: 24,
+    color: "white",
     fontWeight: "bold",
     textAlign: "center",
     marginTop: 20,
@@ -230,12 +232,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 6,
     marginBottom: 4,
-    color: "#555",
+    color: "#aaaaaa",
   },
   section: {
+    color: "white",
+
     marginTop: 16,
   },
   sectionTitle: {
+    color: "white",
+
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 6,
@@ -243,16 +249,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   body: {
+    color: "white",
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 4,
   },
   bulletItem: {
+    color: "white",
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 4,
   },
   conditionItem: {
+    color: "white",
     fontSize: 13,
     lineHeight: 20,
     marginBottom: 6,
