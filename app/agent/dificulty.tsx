@@ -159,7 +159,7 @@ export default function DifficultyScreen() {
         <View style={styles.detailsContainer}>
           <Text style={styles.detailsText}>
             {!selectedDifficulty
-              ? "Cliquez sur une des bombes pour choisir"
+              ? "Cliquez sur une des bombes pour choisir la difficulté"
               : difficultyDetails[selectedDifficulty]}
           </Text>
         </View>
