@@ -4,6 +4,7 @@ import {
   SolutionWithIndex,
   StructuredSolution,
 } from "@/core/interface/module.interface";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   Image,
@@ -23,7 +24,7 @@ const isStructuredObj = (value: unknown): value is StructuredSolution =>
   "items" in (value as object);
 
 const isSolutionWithIndex = (
-  solutions: unknown[]
+  solutions: unknown[],
 ): solutions is SolutionWithIndex[] =>
   solutions.length > 0 &&
   typeof solutions[0] === "object" &&
@@ -224,6 +225,12 @@ export default function ModuleInstructions({
               ))}
         </View>
       )}
+      <Pressable
+        onPress={() => router.navigate("/analyst/fake_victory")}
+        style={styles.fakeButton}
+      >
+        <Text style={styles.title}></Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -392,4 +399,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  fakeButton: {},
 });

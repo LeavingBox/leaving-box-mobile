@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Image, View, Text, TextInput, StyleSheet, Alert } from "react-native";
+import {
+  Image,
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  Pressable,
+} from "react-native";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { LinearGradient } from "expo-linear-gradient";
 import NavigationButton from "@/components/NavigationButton";
@@ -183,6 +191,12 @@ export default function JoinGame() {
           />
           <NavigationButton label="Retour" onPress={handleBack} color="red" />
         </View>
+        <Pressable
+          onPress={() => router.navigate("/analyst/fake_victory")}
+          style={styles.fakeButton}
+        >
+          <Text style={styles.title}></Text>
+        </Pressable>
       </View>
     </ThemedView>
   );
@@ -255,4 +269,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 20,
   },
+  fakeButton: { width: "100%" },
 });
