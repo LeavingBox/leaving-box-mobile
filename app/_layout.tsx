@@ -43,7 +43,6 @@ export default function RootLayout() {
             name="audio/audioMenu"
             options={{ headerShown: false }}
           />
-          <Stack.Screen name="fake_victory" options={{ headerShown: false }} />
 
           <Stack.Screen name="creditsScreen" options={{ headerShown: false }} />
           <Stack.Screen
@@ -61,6 +60,10 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="analyst/manual"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="analyst/fake_victory"
             options={{ headerShown: false }}
           />
           <Stack.Screen name="+not-found" />
