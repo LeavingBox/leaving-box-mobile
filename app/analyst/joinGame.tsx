@@ -166,20 +166,10 @@ export default function JoinGame() {
         />
       </View>
       <View style={styles.container}>
-        <Text style={styles.title}>Join the session</Text>
-
-        {/* TO DO, make a real text !! */}
-        {/* <Text style={styles.description}>
-          Proident est dolore ullamco cupidatat non ullamco anim. Laborum ea
-          aliquip magna deserunt qui. Elit mollit elit deserunt velit labore
-          proident adipisicing nisi esse sunt laboris. Magna eu dolore ad. Aute
-          Lorem aute tempor dolore nisi aliqua reprehenderit commodo ut laborum
-          nostrud laboris pariatur. Duis amet in minim sunt amet adipisicing
-          velit consectetur amet pariatur sunt ut.
-        </Text> */}
+        <Text style={styles.title}>Rejoindre la partie</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter code"
+          placeholder="Code XX-XX"
           placeholderTextColor="#ffffff"
           value={code}
           onChangeText={setCode}
@@ -254,6 +244,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     borderRadius: 10,
+    paddingVertical: 15,
     minWidth: "100%",
     backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
