@@ -23,7 +23,7 @@ const isStructuredObj = (value: unknown): value is StructuredSolution =>
   "items" in (value as object);
 
 const isSolutionWithIndex = (
-  solutions: unknown[],
+  solutions: unknown[]
 ): solutions is SolutionWithIndex[] =>
   solutions.length > 0 &&
   typeof solutions[0] === "object" &&
@@ -66,9 +66,19 @@ function ResolutionTable({ items }: { items: ResolutionItem[] }) {
           key={i}
           style={[styles.tableRow, i % 2 === 0 && styles.tableRowAlt]}
         >
-          <Text style={styles.tableCell}>{item.parity}</Text>
-          <Text style={styles.tableCell}>{item.comparison}</Text>
-          <Text style={[styles.tableCell, styles.tableCellWide]}>
+          <Text style={[styles.tableCell, i % 2 === 0 && styles.tableCellAlt]}>
+            {item.parity}
+          </Text>
+          <Text style={[styles.tableCell, i % 2 === 0 && styles.tableCellAlt]}>
+            {item.comparison}
+          </Text>
+          <Text
+            style={[
+              styles.tableCell,
+              styles.tableCellWide,
+              i % 2 === 0 && styles.tableCellAlt,
+            ]}
+          >
             {item.letters.join(", ")}
           </Text>
         </View>
@@ -122,44 +132,6 @@ export default function ModuleInstructions({
         </View>
       )}
 
-      {manual.imgUrl && (
-        <>
-          <TouchableOpacity onPress={() => setImageModalVisible(true)}>
-            <Image
-              resizeMode="contain"
-              source={{
-                uri: manual.imgUrl.startsWith("http")
-                  ? manual.imgUrl
-                  : `${process.env.EXPO_PUBLIC_API_URL}${manual.imgUrl}`,
-              }}
-              style={styles.image}
-            />
-          </TouchableOpacity>
-
-          <Modal
-            visible={imageModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setImageModalVisible(false)}
-          >
-            <Pressable
-              style={styles.modalOverlay}
-              onPress={() => setImageModalVisible(false)}
-            >
-              <Image
-                resizeMode="contain"
-                source={{
-                  uri: manual.imgUrl.startsWith("http")
-                    ? manual.imgUrl
-                    : `${process.env.EXPO_PUBLIC_API_URL}${manual.imgUrl}`,
-                }}
-                style={styles.modalImage}
-              />
-            </Pressable>
-          </Modal>
-        </>
-      )}
-
       {(rulesItems.length > 0 || gameRulesItems.length > 0) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Règles du jeu</Text>
@@ -186,6 +158,44 @@ export default function ModuleInstructions({
       {rawSolutions.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Solutions</Text>
+
+          {manual.imgUrl && (
+            <>
+              <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+                <Image
+                  resizeMode="contain"
+                  source={{
+                    uri: manual.imgUrl.startsWith("http")
+                      ? manual.imgUrl
+                      : `${process.env.EXPO_PUBLIC_API_URL}${manual.imgUrl}`,
+                  }}
+                  style={styles.image}
+                />
+              </TouchableOpacity>
+
+              <Modal
+                visible={imageModalVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setImageModalVisible(false)}
+              >
+                <Pressable
+                  style={styles.modalOverlay}
+                  onPress={() => setImageModalVisible(false)}
+                >
+                  <Image
+                    resizeMode="contain"
+                    source={{
+                      uri: manual.imgUrl.startsWith("http")
+                        ? manual.imgUrl
+                        : `${process.env.EXPO_PUBLIC_API_URL}${manual.imgUrl}`,
+                    }}
+                    style={styles.modalImage}
+                  />
+                </Pressable>
+              </Modal>
+            </>
+          )}
 
           {isSolutionWithIndex(rawSolutions)
             ? rawSolutions.map((sol, i) => (
@@ -275,7 +285,8 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     alignSelf: "center",
-    marginTop: 16,
+    marginTop: 0,
+    marginBottom: 0,
   },
   modalOverlay: {
     flex: 1,
@@ -316,6 +327,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     borderRightWidth: 1,
     borderRightColor: "#ccc",
+    color: "white",
+  },
+  tableCellAlt: {
+    color: "black",
   },
   tableCellWide: {
     flex: 2,

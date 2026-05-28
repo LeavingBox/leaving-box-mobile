@@ -15,6 +15,7 @@ export default function ManualsNav({
     <View style={styles.navbar}>
       {data.map((manual, index) => (
         <ThemedView
+          key={manual.name}
           style={[
             index == 0 ? styles.buttonFirst : styles.button,
             { zIndex: data.length - index },
